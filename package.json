@@ -1,21 +1,41 @@
 {
-  "name": "vue-mycalendar",
-  "description": "Ein Kalender und Terminplanungs-Package für Vue 3",
-  "version": "0.1.0",
-  "main": "dist/vue3-calendar-scheduler.cjs.js",
-  "module": "dist/vue3-calendar-scheduler.esm.js",
+  "name": "vue3-mycalendar",
+  "description": "A calendar and scheduling package for Vue 3",
+  "version": "0.1.10",
+  "main": "dist/vue3-mycalendar.umd.js",
+  "module": "dist/vue3-mycalendar.es.js",
+  "style": "dist/style.css",
+  "exports": {
+    ".": {
+      "import": "./dist/vue3-mycalendar.es.js",
+      "require": "./dist/vue3-mycalendar.umd.js"
+    },
+    "./dist/style.css": "./dist/style.css"
+  },
+  "types": "dist/main.d.ts",
   "files": [
     "dist",
+    "dist/style.css", 
     "src"
   ],
   "scripts": {
-    "build": "vite build",
     "dev": "vite",
-    "preview": "vite preview",
-    "type-check": "vue-tsc --noEmit"
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview"
   },
+  "keywords": [
+    "vue",
+    "javascript",
+    "typescript",
+    "component",
+    "calender",
+    "date",
+    "iosselect"
+  ],
   "dependencies": {
-    "@inertiajs/vue3": "^1.2.0",
+    "vue": "^3.5.12"
+  },
+  "peerDependencies": {
     "vue": "^3.5.12"
   },
   "devDependencies": {
