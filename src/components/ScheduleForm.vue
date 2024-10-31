@@ -1,7 +1,7 @@
 <template>
-  <div :style="componentStyle">
+  <div :class="customClass" :style="{ ...customStyles, ...componentStyle}">
     <form class="form-container" @submit.prevent="addEvent">
-      <!-- Dynamic fields -->
+      <!-- Dynamic fields-->
       <div v-for="field in additionalFields" :key="field.id" class="form-group">
         <label :for="field.id" class="form-label">{{ field.label }}:</label>
         <div v-if="field.type === 'select'">
@@ -62,8 +62,8 @@
                    :key="event.id" class="event" :style="getEventStyle(event)">
                    <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
                    <button class="info-button" @click="showEventInfo(event)">
-                  <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
-              </button>
+                      <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
+                   </button>
               </div>
             </div>
           </div>
@@ -91,46 +91,16 @@
   </div>
 </template>
 
+
 <script lang="ts" setup>
 import { ref, computed, watchEffect, onMounted } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
-
-interface FieldOption {
-id: string;
-name?: string;
-first_name?: string;
-last_name?: string;
-}
-
-interface Field {
-id: string;
-label: string;
-type: string;
-model: string;
-options?: FieldOption[];
-}
-
-interface EventInfo {
-title: string;
-color: string;
-teacher: string;
-start: string;
-end: string;
-date: string;
-id?: number | string;
-info?: string;
-}
-
-interface LabelsAndSettings {
-startTimeLabel?: string;
-endTimeLabel?: string;
-dateLabel?: string;
-submitButtonText?: string;
-calendarWeekLabel?: string;
-}
+import { FieldOption, Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
 
 const props = defineProps<{
+customClass: { type: String, default: '' },
+customStyles: { type: Object, default: () => ({}) },
 schedules: EventInfo[];
 additionalFields: Field[];
 weekdays?: string[];
@@ -299,7 +269,7 @@ props.additionalFields.forEach((field) => {
 </script>
   
 <style>
-  :root {
+  .customize-schedule-form {
     --form-bg-color: #ffffff;
     --form-padding: 20px;
     --form-border-radius: 10px;
