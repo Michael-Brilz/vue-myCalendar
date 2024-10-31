@@ -1,5 +1,5 @@
 <template>
-  <div :class="customClass" :style="{ ...customStyles, ...componentStyle}">
+  <div :class="customClass" :style="customStyles">
     <form class="form-container" @submit.prevent="addEvent">
       <!-- Dynamic fields-->
       <div v-for="field in additionalFields" :key="field.id" class="form-group">
@@ -96,7 +96,7 @@
 import { ref, computed, watchEffect, onMounted } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
-import { FieldOption, Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
+import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
 
 const props = defineProps<{
 customClass: { type: String, default: '' },
@@ -160,25 +160,6 @@ Object.keys(newEvent.value).forEach((key) => {
   newEvent.value[key as keyof EventInfo] = '';
 });
 };
-
-// Styling as a computed property
-const componentStyle = computed(() => ({
-'--form-bg-color': '#fff',
-'--form-padding': '20px',
-'--form-border-radius': '10px',
-'--form-border': '1px solid #333',
-'--label-color': '#445269',
-'--label-font-weight': '500',
-'--input-border': '1px solid #445269',
-'--input-border-radius': '5px',
-'--input-padding': '10px',
-'--input-font-size': '15px',
-'--button-bg-color': '#445269',
-'--button-hover-bg-color': '#333',
-'--button-color': '#fff',
-'--button-padding': '12px 20px',
-'--button-border-radius': '8px',
-}));
 
 // Load and assign events
 const loadEvents = () => {
@@ -269,24 +250,6 @@ props.additionalFields.forEach((field) => {
 </script>
   
 <style>
-  .customize-schedule-form {
-    --form-bg-color: #ffffff;
-    --form-padding: 20px;
-    --form-border-radius: 10px;
-    --form-border: 1px solid #333;
-    --label-color: #445269;
-    --label-font-weight: 500;
-    --input-border: 1px solid #445269;
-    --input-border-radius: 5px;
-    --input-padding: 10px;
-    --input-font-size: 15px;
-    --button-bg-color: #445269;
-    --button-hover-bg-color: #333;
-    --button-color: #fff;
-    --button-padding: 12px 20px;
-    --button-border-radius: 8px;
-  }
-  
   .small-logo {
   width: 20px;
   height: 20px;
