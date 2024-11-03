@@ -71,22 +71,7 @@
       </div>
     </div>
 
-    <Popup :visible="eventInfoPopup.visible" closeButtonText="Close" @close="closeEventInfoPopup">
-      <!-- Content of the popup as a slot -->
-      <template v-if="isEventInfo(eventInfoPopup.event)">
-        <p><strong>Subject:</strong> {{ eventInfoPopup.event.title }}</p>
-        <p><strong>Teacher:</strong> {{ eventInfoPopup.event.teacher }}</p>
-        <p><strong>Start Time:</strong> {{ eventInfoPopup.event.start }}</p>
-        <p><strong>End Time:</strong> {{ eventInfoPopup.event.end }}</p>
-        <p><strong>Date:</strong> {{ eventInfoPopup.event.date }}</p>
-        <p><strong>Info:</strong> {{ eventInfoPopup.event.info }}</p>
-        <button class="remove-button" @click="removeEventById(eventInfoPopup.event.id)">
-          Delete Event
-        </button>
-      </template>
-      <template v-else>
-        <p>No event information available.</p>
-      </template>
+    <Popup :visible="eventInfoPopup.visible" :eventData="eventInfoPopup.event" closeButtonText="Close" @close="closeEventInfoPopup">
     </Popup>
   </div>
 </template>

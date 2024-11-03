@@ -34,3 +34,8 @@ export interface FieldOption {
     calendarWeekLabel?: string;
   }
   
+  export interface PopupProps {
+    visible: boolean;
+    closeButtonText: string;
+    eventData: Record<string, any>;
+  }
