@@ -30,7 +30,7 @@ import { ref, computed } from 'vue';
 import ScheduleForm from 'vue3-mycalendar';
 
 const schedules = ref([
-  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00'. teacher: 'Malika Heaney', room: 'Room 1' },
+  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1' },
   { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2' },
 ]);
 

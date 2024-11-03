@@ -236,8 +236,8 @@ props.additionalFields.forEach((field) => {
   
 <style>
   .small-logo {
-  width: 20px;
-  height: 20px;
+    width: 20px;
+    height: 20px;
   }
 
   .form-container {
@@ -250,20 +250,20 @@ props.additionalFields.forEach((field) => {
     border: var(--form-border);
     margin-bottom: 20px;
   }
-  
+
   .form-group {
     flex: 1;
     min-width: 200px;
     margin-bottom: 10px;
   }
-  
+
   .form-label {
     display: block;
     color: var(--label-color);
     font-weight: var(--label-font-weight);
     margin-bottom: 4px;
   }
-  
+
   .form-input,
   .form-select {
     width: 100%;
@@ -275,7 +275,7 @@ props.additionalFields.forEach((field) => {
     box-sizing: border-box;
     appearance: none;
   }
-  
+
   .submit-button {
     background-color: var(--button-bg-color);
     color: var(--button-color);
@@ -286,11 +286,11 @@ props.additionalFields.forEach((field) => {
     transition: background-color 0.3s ease;
     font-size: 1rem;
   }
-  
+
   .submit-button:hover {
     background-color: var(--button-hover-bg-color);
   }
-  
+
   .weekdays {
     list-style-type: none;
     display: flex;
@@ -299,9 +299,9 @@ props.additionalFields.forEach((field) => {
     padding: 0;
     border-bottom: 1px solid #ccc;
     margin: 0;
-    height: 100%;
+    height: 40px;
   }
-  
+
   .weekday {
     flex: 1;
     display: flex;
@@ -310,57 +310,66 @@ props.additionalFields.forEach((field) => {
     align-items: center;
     height: 100%;
     text-align: center;
+    margin-bottom: 13px;
   }
-  
+
   .calendar {
     display: flex;
     flex-direction: column;
   }
-  
+
   .hours-and-days {
     display: flex;
+    align-items: stretch;
   }
-  
+
   .hours {
     display: flex;
     flex-direction: column;
     align-items: center;
     flex-shrink: 0;
     width: 50px;
+    height: 100%;
   }
-  
+
   .hours .hour {
-    height: 40px;
+    min-height: 40px;
     border-bottom: 1px solid #ccc;
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    flex-grow: 1;
   }
-  
+
   .weekdays-container {
     display: flex;
     flex-direction: column;
     width: 100%;
   }
-  
+
   .days {
     display: flex;
+    flex-grow: 1;
   }
-  
+
   .day {
     flex: 1;
     border-left: 1px solid #ccc;
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
-  
+
   .day .hour {
-    height: 40px;
+    min-height: 40px;
     border-bottom: 1px solid #ccc;
-    position: relative;
+    display: flex;
+    align-items: center;
     box-sizing: border-box;
+    flex-grow: 1;
   }
-  
+
   .event {
     background-color: #a4d8ff;
     padding: 2px;
@@ -370,7 +379,7 @@ props.additionalFields.forEach((field) => {
     box-sizing: border-box;
     position: absolute;
   }
-  
+
   .remove-button {
     background-color: #e53e3e;
     color: white;
@@ -380,18 +389,18 @@ props.additionalFields.forEach((field) => {
     border-radius: 5px;
     margin-top: 1rem;
   }
-  
+
   .empty-slot {
     height: 40px;
   }
-  
+
   .navigation {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
   }
-  
+
   .arrow-button {
     background-color: #007bff;
     color: white;
@@ -401,12 +410,12 @@ props.additionalFields.forEach((field) => {
     border-radius: 5px;
     margin: 0 1rem;
   }
-  
+
   .current-week {
     font-size: 1.2rem;
     font-weight: bold;
   }
-  
+
   .info-button {
     position: absolute;
     top: 2px;
@@ -417,7 +426,7 @@ props.additionalFields.forEach((field) => {
     font-weight: bold;
     cursor: pointer;
   }
-  
+
   .popup {
     position: fixed;
     top: 0;
@@ -430,7 +439,7 @@ props.additionalFields.forEach((field) => {
     align-items: center;
     z-index: 1000;
   }
-  
+
   .popup-content {
     background-color: white;
     padding: 1rem;
@@ -438,7 +447,7 @@ props.additionalFields.forEach((field) => {
     max-width: 400px;
     width: 100%;
   }
-  
+
   .close-button {
     background-color: #007bff;
     color: white;
@@ -448,5 +457,5 @@ props.additionalFields.forEach((field) => {
     border-radius: 5px;
     margin-top: 1rem;
   }
-  </style>
+</style>
   
