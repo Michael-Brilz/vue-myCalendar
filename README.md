@@ -30,8 +30,8 @@ import { ref, computed } from 'vue';
 import ScheduleForm from 'vue3-mycalendar';
 
 const schedules = ref([
-  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00' },
-  { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00' },
+  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00'. teacher: 'Malika Heaney', room: 'Room 1' },
+  { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2' },
 ]);
 
 const additionalFields = ref([
@@ -67,6 +67,16 @@ const labelsAndSettings = computed(() => ({
 | customClass       |   String    | A custom CSS class to customise the component layout.         |
 | labelsAndSettings |   Object    | An object for customising the labels and text settings of the calendar component. |
 
+ ## Required Fields in schedules
+
+Each event object within the schedules array must include the following standard fields:
+
+id (Number): A unique identifier for the event.
+title (String): The title or name of the event.
+date (String, format YYYY-MM-DD): The date of the event.
+start (String, format HH:MM): The start time of the event.
+end (String, format HH:MM): The end time of the event.
+Additional fields, such as info or custom fields defined in additionalFields, are optional but can be added to extend the event data as needed.
 
 ## Screenshots
 
