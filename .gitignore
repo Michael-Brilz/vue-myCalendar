@@ -24,6 +24,9 @@ build/
 # MacOS system files
 .DS_Store
 
+# app.vue
+src/App.vue
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
