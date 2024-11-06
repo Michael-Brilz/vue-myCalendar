@@ -1,7 +1,7 @@
 {
   "name": "vue-mycalendar",
   "description": "A calendar and scheduling package for Vue 3",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "main": "dist/vue-mycalendar.umd.js",
   "module": "dist/vue-mycalendar.es.js",
   "style": "dist/style.css",
@@ -9,8 +9,8 @@
     "name": "Michael Brilz"
   },
   "repository": {
-  "type": "git",
-  "url": "https://github.com/Michael-Brilz/vue-myCalendar"
+    "type": "git",
+    "url": "https://github.com/Michael-Brilz/vue-myCalendar"
   },
   "exports": {
     ".": {
