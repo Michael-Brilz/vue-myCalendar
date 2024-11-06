@@ -9,7 +9,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
-import ScheduleForm from 'vue3-mycalendar';
+import ScheduleForm from './ScheduleForm.vue';
 
 const schedules = ref([
   { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1' },
