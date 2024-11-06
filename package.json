@@ -1,5 +1,5 @@
 {
-  "name": "vue-mycalendar",
+  "name": "vue3-mycalendar",
   "description": "A calendar and scheduling package for Vue 3",
   "version": "0.3.4",
   "main": "dist/vue-mycalendar.umd.js",
