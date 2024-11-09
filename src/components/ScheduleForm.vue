@@ -70,9 +70,14 @@
         </div>
       </div>
     </div>
-
-    <Popup :visible="eventInfoPopup.visible" :eventData="eventInfoPopup.event" closeButtonText="Close" @close="closeEventInfoPopup">
-    </Popup>
+// Event Popup
+<Popup
+  :visible="eventInfoPopup.visible"
+  :eventData="eventInfoPopup.event"
+  :popupFields="popupFields"
+  closeButtonText="Close"
+  @close="closeEventInfoPopup"
+/>
   </div>
 </template>
 
@@ -84,13 +89,14 @@ import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
 
 const props = defineProps<{
-customClass: { type: String, default: '' },
-customStyles: { type: Object, default: () => ({}) },
+customClass: string,
+customStyles?: Record<string, any>,
 schedules: EventInfo[];
-additionalFields: Field[];
-weekdays?: string[];
-eventTitleColor?: string;
-eventTitleSize?: string;
+additionalFields: Field[],
+weekdays?: string[],
+eventTitleColor?: string,
+eventTitleSize?: string
+popupFields: string[],
 labelsAndSettings?: LabelsAndSettings;
 }>();
 
@@ -210,7 +216,7 @@ let height = ((endTotalMinutes - startTotalMinutes) * 40) / 60;
 if (endMinutes === 0) height += 40;
 
 return {
-  backgroundColor: event.color,
+  backgroundColor: event.color || '#a4d8ff',
   top: `${topPosition}px`,
   height: `${height}px`,
   position: 'absolute' as 'absolute',
@@ -356,9 +362,7 @@ props.additionalFields.forEach((field) => {
   .day {
     flex: 1;
     border-left: 1px solid #ccc;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    position: relative;
   }
 
   .day .hour {

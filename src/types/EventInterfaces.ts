@@ -17,7 +17,7 @@ export interface FieldOption {
   
   export interface EventInfo {
     title: string;
-    color: string;
+    color?: string;
     teacher: string;
     start: string;
     end: string;
@@ -37,5 +37,6 @@ export interface FieldOption {
   export interface PopupProps {
     visible: boolean;
     closeButtonText: string;
-    eventData: Record<string, any>;
+    eventData?: { [key: string]: any };
+    popupFields: string[];
   }
