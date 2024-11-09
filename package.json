@@ -14,8 +14,8 @@
   },
   "exports": {
     ".": {
-      "import": "./dist/vue-mycalendar.es.js",
-      "require": "./dist/vue-mycalendar.umd.js"
+      "import": "./dist/vue3-mycalendar.es.js",
+      "require": "./dist/vue3-mycalendar.umd.js"
     },
     "./dist/style.css": "./dist/style.css"
   },
