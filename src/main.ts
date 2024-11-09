@@ -1,3 +1,9 @@
-import MyCalendar from './components/ScheduleForm.vue';
+import { createApp } from 'vue';
+import App from './components/App.vue';
+import ScheduleForm from './components/ScheduleForm.vue';
 
-export default MyCalendar;
+const app = createApp(App);
+
+app.component('ScheduleForm', ScheduleForm);
+
+app.mount('#app');

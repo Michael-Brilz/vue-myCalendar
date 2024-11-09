@@ -22,6 +22,7 @@ Install with npm
       :additional-fields="additionalFields" 
       custom-class="customize-schedule-form"
       :labels-and-settings="labelsAndSettings"
+      :popup-fields="popupFields"
     />
 </template>
 
@@ -30,16 +31,24 @@ import { ref, computed } from 'vue';
 import ScheduleForm from 'vue3-mycalendar';
 
 const schedules = ref([
+    // Array containing the list of events to be displayed on the calendar
   { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1' },
   { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2' },
 ]);
 
+const popupFields = ref([
+  // Array defining which fields should be displayed in the event details popup
+  'title', 'date', 'start', 'end', 'teacher', 'room'
+]);
+
 const additionalFields = ref([
+    // Array of additional fields to be included in the event form for customization
   { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
   { id: 'room', label: 'Room', type: 'select', model: 'room', options: [{ id: 1, name: 'Room 1' }, { id: 2, name: 'Room 2' }] },
 ]);
 
 const labelsAndSettings = computed(() => ({
+    // Object containing custom labels and settings for the calendar component
   startTimeLabel: 'Start Time',    
   endTimeLabel: 'End Time',        
   dateLabel: 'Date',               
@@ -66,6 +75,7 @@ const labelsAndSettings = computed(() => ({
 | additionalFields  |   Array     | A list of additional fields for the event form.               |
 | customClass       |   String    | A custom CSS class to customise the component layout.         |
 | labelsAndSettings |   Object    | An object for customising the labels and text settings of the calendar component. |
+| popupFields       |   Array     | An array of fields to be displayed in the popup for event details. |
 
  ## Required Fields in schedules
 
@@ -83,8 +93,8 @@ Additional fields, such as info or custom fields defined in additionalFields, ar
 ![App Screenshot](https://i.postimg.cc/3Jbqnwmf/Bildschirmfoto-2024-10-31-um-17-09-13.png)
 
 ## 🚀 About Me
-I'm a full stack developer...
+I am a motivated junior developer looking to grow through hands-on experience in various projects. I work as a full-stack developer in the cloud department of a cybersecurity product vendor, where I am dedicated to developing secure and robust applications. My goal is to continuously expand my skills and make a significant contribution to the tech industry.
 
 ## License
 
-[GNU](https://choosealicense.com/licenses/mit/)
+[MIT](https://choosealicense.com/licenses/mit/)

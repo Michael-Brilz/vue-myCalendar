@@ -5,6 +5,7 @@
       :additional-fields="additionalFields" 
       custom-class="customize-schedule-form"
       :labels-and-settings="labelsAndSettings"
+      :popup-fields="popupFields"
     />
   </div>
 </template>
@@ -14,9 +15,11 @@ import { ref, computed } from 'vue';
 import ScheduleForm from './ScheduleForm.vue';
 
 const schedules = ref([
-  { id: 1, title: 'Meeting', date: '2024-11-04', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1' },
-  { id: 2, title: 'Workshop', date: '2024-11-07', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2' },
+  { id: 1, title: 'Meeting', date: '2024-11-04', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1', color: '#e2Be33' },
+  { id: 2, title: 'Workshop', date: '2024-11-07', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2', color: '#33C3FF' },
 ]);
+
+const popupFields = ref(['title', 'date', 'start', 'end']);
 
 const additionalFields = ref([
   { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
@@ -43,7 +46,7 @@ const labelsAndSettings = computed(() => ({
   --input-border-radius: 5px;
   --input-padding: 10px;
   --input-font-size: 15px;
-  --button-bg-color: #427ddc;
+  --button-bg-color: #18e197;
   --button-hover-bg-color: #333;
   --button-color: #fff;
   --button-padding: 12px 20px;
