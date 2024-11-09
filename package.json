@@ -2,8 +2,8 @@
   "name": "vue3-mycalendar",
   "description": "A calendar and scheduling package for Vue 3",
   "version": "0.3.5",
-  "main": "dist/vue-mycalendar.umd.js",
-  "module": "dist/vue-mycalendar.es.js",
+  "main": "dist/vue3-mycalendar.umd.js",
+  "module": "dist/vue3-mycalendar.es.js",
   "style": "dist/style.css",
   "author": {
     "name": "Michael Brilz"

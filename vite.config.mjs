@@ -7,8 +7,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/main.ts'),
-      name: 'VueMyCalendar',
-      fileName: (format) => `vue-mycalendar.${format}.js`,
+      name: 'MyCalendar',
+      fileName: (format) => `vue3-mycalendar.${format}.js`,
       formats: ['es', 'umd']
     },
     rollupOptions: {
