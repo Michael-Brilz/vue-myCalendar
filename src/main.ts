@@ -1,9 +1,5 @@
-import { createApp } from 'vue';
-import App from './components/App.vue';
+// main.ts in deinem Package
 import ScheduleForm from './components/ScheduleForm.vue';
 
-const app = createApp(App);
-
-app.component('ScheduleForm', ScheduleForm);
-
-app.mount('#app');
+// Stelle ScheduleForm als benannten Export zur Verfügung
+export { ScheduleForm };
