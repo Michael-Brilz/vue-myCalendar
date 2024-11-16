@@ -4,7 +4,7 @@
       <!-- Dynamic display of filtered event data -->
       <div v-if="eventData && Object.keys(eventData).length">
         <div v-for="(value, key) in filteredEventData" :key="key" class="popup-field">
-          <p><strong>{{ formatKey(key) }}:</strong> {{ value }}</p>
+          <p><strong>{{ formatKey(String(key)) }}:</strong> {{ value }}</p>
         </div>
       </div>
       <slot v-else></slot>
