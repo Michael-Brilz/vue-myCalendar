@@ -70,13 +70,14 @@
         </div>
       </div>
     </div>
-// Event Popup
+
 <Popup
   :visible="eventInfoPopup.visible"
   :eventData="eventInfoPopup.event"
   :popupFields="popupFields"
   closeButtonText="Close"
   @close="closeEventInfoPopup"
+  @deleteEvent="emitDeleteEvent"
 />
   </div>
 </template>
@@ -96,11 +97,11 @@ additionalFields: Field[],
 weekdays?: string[],
 eventTitleColor?: string,
 eventTitleSize?: string
-popupFields: string[],
+popupFields?: string[],
 labelsAndSettings?: LabelsAndSettings;
 }>();
 
-const emit = defineEmits(['submitEvent']);
+const emit = defineEmits(['submitEvent', 'deleteEvent']);
 
 const weekdays = computed(() => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
 const eventTitleColor = computed(() => props.eventTitleColor || '#000');
@@ -232,6 +233,10 @@ eventInfoPopup.value.visible = true;
 };
 
 const closeEventInfoPopup = () => eventInfoPopup.value.visible = false;
+
+const emitDeleteEvent = (eventId) => {
+  emit('deleteEvent', eventId);
+};
 
 onMounted(() => {
 props.additionalFields.forEach((field) => {

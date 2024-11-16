@@ -6,6 +6,7 @@
       custom-class="customize-schedule-form"
       :labels-and-settings="labelsAndSettings"
       :popup-fields="popupFields"
+      @deleteEvent="handleDeleteEvent"
     />
   </div>
 </template>
@@ -33,6 +34,11 @@ const labelsAndSettings = computed(() => ({
   submitButtonText: 'Add Event',   
   calendarWeekLabel: 'Week',       
 }));
+
+const handleDeleteEvent = (eventId) => {
+  schedules.value = schedules.value.filter(event => event.id !== eventId);
+};
+
 </script>
 
 <style scoped lang="scss">

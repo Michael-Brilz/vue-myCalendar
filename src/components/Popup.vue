@@ -8,9 +8,14 @@
         </div>
       </div>
       <slot v-else></slot>
-      <button class="close-button" @click="closePopup">
-        {{ closeButtonText }}
-      </button>
+      <div class="button-container">
+        <button class="close-button" @click="closePopup">
+          {{ closeButtonText }}
+        </button>
+        <button class="delete-button" @click="deleteEvent">
+          Delete
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -19,22 +24,25 @@
 import { defineProps, defineEmits, computed } from 'vue';
 import { PopupProps } from '../types/EventInterfaces';
 
-const props = defineProps<PopupProps & { popupFields: string[] }>();
+const props = defineProps<PopupProps & { popupFields?: string[] }>();
 
-const emit = defineEmits<{ (e: 'close'): void }>();
+const emit = defineEmits<{ (e: 'close'): void; (e: 'deleteEvent', id: number): void }>();
 
-// Function for formatting the key for better readability
+const popupFields = computed(() => props.popupFields || []);
+const eventData = computed(() => props.eventData || {});
+
 const formatKey = (key: string): string => {
   return key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-// Filter event data based on popupFields
 const filteredEventData = computed(() => {
-  if (!props.eventData) return {};
-  return Object.keys(props.eventData)
-    .filter(key => props.popupFields.includes(key))
+  if (popupFields.value.length === 0) {
+    return eventData.value;
+  }
+  return Object.keys(eventData.value)
+    .filter(key => popupFields.value.includes(key))
     .reduce((obj, key) => {
-      obj[key] = props.eventData[key];
+      obj[key] = eventData.value[key];
       return obj;
     }, {} as Record<string, any>);
 });
@@ -42,6 +50,11 @@ const filteredEventData = computed(() => {
 const closePopup = (): void => {
   emit('close');
 };
+
+const deleteEvent = () => {
+  emit('deleteEvent', eventData.value.id);
+};
+
 </script>
 
 <style scoped>
@@ -70,13 +83,38 @@ const closePopup = (): void => {
   margin-bottom: 0.5rem;
 }
 
-.close-button {
+.button-container {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+.close-button,
+.delete-button {
+  width: 120px; 
   background-color: #007bff;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.6rem;
+  margin: 0.5rem 15px;
   cursor: pointer;
-  border-radius: 5px;
-  margin-top: 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close-button:hover,
+.delete-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+.delete-button {
+  background-color: #e53e3e;
+}
+
+.delete-button:hover {
+  background-color: #cc2e2e;
 }
 </style>
