@@ -26,7 +26,7 @@ import { PopupProps } from '../types/EventInterfaces';
 
 const props = defineProps<PopupProps & { popupFields?: string[] }>();
 
-const emit = defineEmits<{ (e: 'close'): void; (e: 'deleteEvent', id: number): void }>();
+const emit = defineEmits<{ (e: 'close'): void; (e: 'handleDelete', id: number): void }>();
 
 const popupFields = computed(() => props.popupFields || []);
 const eventData = computed(() => props.eventData || {});
@@ -52,7 +52,7 @@ const closePopup = (): void => {
 };
 
 const deleteEvent = () => {
-  emit('deleteEvent', eventData.value.id);
+  emit('handleDelete', eventData.value.id);
 };
 
 </script>
