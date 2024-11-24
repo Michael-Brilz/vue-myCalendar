@@ -1,6 +1,4 @@
 
-## Still under development and not suitable for productive use
-
 # vue3-mycalendar
 
 vue3-mycalendar is a powerful and customisable calendar component for Vue 3 that provides an easy way to view and manage calendar events and supports custom fields and customisable labels and styles.
@@ -23,6 +21,7 @@ Install with npm
       custom-class="customize-schedule-form"
       :labels-and-settings="labelsAndSettings"
       :popup-fields="popupFields"
+      @handleDelete="handleEventDelete"
     />
 </template>
 
@@ -32,8 +31,8 @@ import ScheduleForm from 'vue3-mycalendar';
 
 const schedules = ref([
     // Array containing the list of events to be displayed on the calendar
-  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1' },
-  { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2' },
+  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', color: '#ff0000', teacher: 'Malika Heaney', room: 'Room 1' },
+  { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', color: '#ff0000', teacher: 'John Doe', room: 'Room 2' },
 ]);
 
 const popupFields = ref([
@@ -55,6 +54,12 @@ const labelsAndSettings = computed(() => ({
   submitButtonText: 'Add Event',   
   calendarWeekLabel: 'Week',       
 }));
+
+// Handle the delete event action
+const handleEventDelete = (id) => {
+  schedules.value = schedules.value.filter(event => event.id !== id);
+  console.log(`Event with ID ${id} deleted successfully`);
+};
 </script>
 
 <style scoped lang="scss">
@@ -77,20 +82,38 @@ const labelsAndSettings = computed(() => ({
 | labelsAndSettings |   Object    | An object for customising the labels and text settings of the calendar component. |
 | popupFields       |   Array     | An array of fields to be displayed in the popup for event details. |
 
+
+## Emitted Events
+
+| Event Name        | Payload               | Description                                               |
+| ------------------|-----------------------| ----------------------------------------------------------|
+| submitEvent       | EventInfo             | Triggered when a new event is added via the form.         |
+| handleDelete      |   `Number | String`   | Triggered when an event is deleted via the popup.         |
+
+ 
  ## Required Fields in schedules
 
 Each event object within the schedules array must include the following standard fields:
 
-id (Number): A unique identifier for the event.
-title (String): The title or name of the event.
-date (String, format YYYY-MM-DD): The date of the event.
-start (String, format HH:MM): The start time of the event.
-end (String, format HH:MM): The end time of the event.
+| Field             | Typ    | Description                                             |
+| ------------------|--------| --------------------------------------------------------|
+| id        |   Number     | A unique identifier for the event.                        |
+| title     |    String    | The title or name of the event.                           |
+| date      |    String    | The date of the event (format: YYYY-MM-DD).               |
+| start     |    String    | The start time of the event (format: HH:MM).              |
+| end       |    String    | The end time of the event (format: HH:MM).                |
+| color     |   String     |A required background color for the event (e.g., #a4d8ff). |
+
 Additional fields, such as info or custom fields defined in additionalFields, are optional but can be added to extend the event data as needed.
 
 ## Screenshots
 
 ![App Screenshot](https://i.postimg.cc/3Jbqnwmf/Bildschirmfoto-2024-10-31-um-17-09-13.png)
+
+
+## Upcoming Features
+This project is actively maintained, and I plan to add exciting new features in the future.
+Stay tuned for regular updates and feature releases!
 
 ## 🚀 About Me
 I am a motivated junior developer looking to grow through hands-on experience in various projects. I work as a full-stack developer in the cloud department of a cybersecurity product vendor, where I am dedicated to developing secure and robust applications. My goal is to continuously expand my skills and make a significant contribution to the tech industry.
