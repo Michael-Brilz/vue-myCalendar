@@ -7,9 +7,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Output directories
-dist/
-build/
 
 # Local environment files
 .env
