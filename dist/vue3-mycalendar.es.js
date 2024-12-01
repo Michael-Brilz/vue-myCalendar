@@ -1,8 +1,8 @@
-import { defineComponent as V, computed as f, openBlock as a, createElementBlock as u, createElementVNode as e, Fragment as b, renderList as y, toDisplayString as r, createTextVNode as j, renderSlot as I, createCommentVNode as K, ref as g, watchEffect as G, onMounted as J, normalizeClass as Q, normalizeStyle as M, withModifiers as R, withDirectives as T, vModelSelect as X, vModelDynamic as Z, vModelText as x, unref as ee, createVNode as te } from "vue";
+import { defineComponent as z, computed as f, openBlock as a, createElementBlock as u, createElementVNode as e, Fragment as b, renderList as y, toDisplayString as r, createTextVNode as j, renderSlot as B, createCommentVNode as K, ref as g, watchEffect as G, onMounted as J, normalizeClass as Q, normalizeStyle as M, withModifiers as R, withDirectives as T, vModelSelect as X, vModelDynamic as Z, vModelText as x, unref as ee, createVNode as te } from "vue";
 const se = {
   key: 0,
   class: "popup"
-}, le = { class: "popup-content" }, ne = { key: 0 }, oe = { class: "button-container" }, ae = /* @__PURE__ */ V({
+}, le = { class: "popup-content" }, ne = { key: 0 }, oe = { class: "button-container" }, ae = /* @__PURE__ */ z({
   __name: "Popup",
   props: {
     visible: { type: Boolean },
@@ -12,24 +12,24 @@ const se = {
   },
   emits: ["close", "handleDelete"],
   setup(k, { emit: D }) {
-    const i = k, _ = D, L = f(() => i.popupFields || []), m = f(() => i.eventData || {}), E = (c) => c.replace(/_/g, " ").replace(/\b\w/g, (v) => v.toUpperCase()), h = f(() => L.value.length === 0 ? m.value : Object.keys(m.value).filter((c) => L.value.includes(c)).reduce((c, v) => (c[v] = m.value[v], c), {})), C = () => {
+    const i = k, _ = D, L = f(() => i.popupFields || []), p = f(() => i.eventData || {}), E = (c) => c.replace(/_/g, " ").replace(/\b\w/g, (v) => v.toUpperCase()), h = f(() => L.value.length === 0 ? p.value : Object.keys(p.value).filter((c) => L.value.includes(c)).reduce((c, v) => (c[v] = p.value[v], c), {})), C = () => {
       _("close");
     }, S = () => {
-      _("handleDelete", m.value.id);
+      _("handleDelete", p.value.id);
     };
     return (c, v) => c.visible ? (a(), u("div", se, [
       e("div", le, [
-        m.value && Object.keys(m.value).length ? (a(), u("div", ne, [
-          (a(!0), u(b, null, y(h.value, (o, p) => (a(), u("div", {
-            key: p,
+        p.value && Object.keys(p.value).length ? (a(), u("div", ne, [
+          (a(!0), u(b, null, y(h.value, (o, m) => (a(), u("div", {
+            key: m,
             class: "popup-field"
           }, [
             e("p", null, [
-              e("strong", null, r(E(String(p))) + ":", 1),
+              e("strong", null, r(E(String(m))) + ":", 1),
               j(" " + r(o), 1)
             ])
           ]))), 128))
-        ])) : I(c.$slots, "default", { key: 1 }, void 0, !0),
+        ])) : B(c.$slots, "default", { key: 1 }, void 0, !0),
         e("div", oe, [
           e("button", {
             class: "close-button",
@@ -57,7 +57,7 @@ const se = {
 }, fe = { class: "form-group" }, ke = {
   for: "date",
   class: "form-label"
-}, Le = ["disabled"], De = { class: "calendar" }, Te = { class: "navigation" }, Ce = { class: "current-week" }, Se = { class: "hours-and-days" }, we = { class: "hours" }, Ee = { class: "weekdays-container" }, Fe = { class: "weekdays" }, Me = { class: "days" }, xe = ["onClick"], Ae = ["src"], ze = /* @__PURE__ */ V({
+}, Le = ["disabled"], De = { class: "calendar" }, Te = { class: "navigation" }, Ce = { class: "current-week" }, Se = { class: "hours-and-days" }, we = { class: "hours" }, Ee = { class: "weekdays-container" }, Fe = { class: "weekdays" }, Me = { class: "days" }, xe = ["onClick"], Ae = ["src"], ze = /* @__PURE__ */ z({
   __name: "ScheduleForm",
   props: {
     customClass: {},
@@ -72,7 +72,7 @@ const se = {
   },
   emits: ["submitEvent", "handleDelete"],
   setup(k, { emit: D }) {
-    const i = k, _ = D, L = f(() => i.weekdays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]), m = f(() => i.eventTitleColor || "#000"), E = f(() => i.eventTitleSize || "16px"), h = f(() => {
+    const i = k, _ = D, L = f(() => i.weekdays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]), p = f(() => i.eventTitleColor || "#000"), E = f(() => i.eventTitleSize || "16px"), h = f(() => {
       var l, s, t, n, d;
       return {
         startTimeLabel: ((l = i.labelsAndSettings) == null ? void 0 : l.startTimeLabel) || "Start Time",
@@ -106,7 +106,7 @@ const se = {
       "21:00",
       "22:00",
       "23:00"
-    ]), v = g({}), o = g({ start: "", end: "", date: "", color: "" }), p = g({ visible: !1, event: {} }), w = g(0), O = async () => {
+    ]), v = g({}), o = g({ start: "", end: "", date: "", color: "" }), m = g({ visible: !1, event: {} }), w = g(0), V = async () => {
       const l = {
         start: o.value.start,
         end: o.value.end,
@@ -129,24 +129,24 @@ const se = {
     const A = (l) => {
       const s = /* @__PURE__ */ new Date(), t = s.getDay(), n = l + 1 - t + w.value * 7, d = new Date(s);
       return d.setDate(s.getDate() + n), d.toISOString().substring(0, 10);
-    }, U = () => {
+    }, I = () => {
       const l = /* @__PURE__ */ new Date(), s = new Date(l.getFullYear(), 0, 1), t = (l.getTime() - s.getTime()) / 864e5 + w.value * 7;
       return Math.ceil((t + s.getDay() + 1) / 7);
-    }, P = () => w.value -= 1, q = () => w.value += 1, N = (l) => {
-      const s = parseInt(l.start.substring(0, 2)), t = parseInt(l.start.substring(3, 5)), n = parseInt(l.end.substring(0, 2)), d = parseInt(l.end.substring(3, 5)), F = s * 60 + t, z = n * 60 + d, Y = F * 40 / 60;
-      let B = (z - F) * 40 / 60;
-      return d === 0 && (B += 40), {
+    }, O = () => w.value -= 1, U = () => w.value += 1, P = (l) => {
+      const s = parseInt(l.start.substring(0, 2)), t = parseInt(l.start.substring(3, 5)), n = parseInt(l.end.substring(0, 2)), d = parseInt(l.end.substring(3, 5)), F = s * 60 + t, W = n * 60 + d, Y = F * 40 / 60;
+      let $ = (W - F) * 40 / 60;
+      return d === 0 && ($ += 40), {
         backgroundColor: l.color || "#a4d8ff",
         top: `${Y}px`,
-        height: `${B}px`,
+        height: `${$}px`,
         position: "absolute",
         left: 0,
         right: 0,
         zIndex: 1
       };
-    }, H = (l) => {
-      p.value.event = l, p.value.visible = !0;
-    }, W = () => p.value.visible = !1, $ = (l) => {
+    }, q = (l) => {
+      m.value.event = l, m.value.visible = !0;
+    }, N = () => m.value.visible = !1, H = (l) => {
       _("handleDelete", l);
     };
     return J(() => {
@@ -159,7 +159,7 @@ const se = {
     }, [
       e("form", {
         class: "form-container",
-        onSubmit: R(O, ["prevent"])
+        onSubmit: R(V, ["prevent"])
       }, [
         (a(!0), u(b, null, y(S.value, (t) => (a(), u("div", {
           key: t.id,
@@ -241,12 +241,12 @@ const se = {
         e("div", Te, [
           e("button", {
             class: "arrow-button",
-            onClick: P
+            onClick: O
           }, "<"),
-          e("span", Ce, r(h.value.calendarWeekLabel || "CW") + " " + r(U()), 1),
+          e("span", Ce, r(h.value.calendarWeekLabel || "CW") + " " + r(I()), 1),
           e("button", {
             class: "arrow-button",
-            onClick: q
+            onClick: U
           }, ">")
         ]),
         e("div", Se, [
@@ -279,15 +279,15 @@ const se = {
                 (a(!0), u(b, null, y(v.value[A(n)] || [], (d, F) => (a(), u("div", {
                   key: d.id,
                   class: "event",
-                  style: M(N(d))
+                  style: M(P(d))
                 }, [
                   e("span", {
-                    style: M({ color: m.value, fontSize: E.value })
+                    style: M({ color: p.value, fontSize: E.value })
                   }, r(d.title), 5),
                   s[4] || (s[4] = e("br", null, null, -1)),
                   e("button", {
                     class: "info-button",
-                    onClick: (z) => H(d)
+                    onClick: (W) => q(d)
                   }, [
                     e("img", {
                       src: ee(de),
@@ -302,19 +302,14 @@ const se = {
         ])
       ]),
       e("div", null, [
-        I(l.$slots, "popup-calendar", {
-          visible: p.value.visible,
-          eventData: p.value.event,
-          close: W,
-          delete: $
-        }, () => [
+        B(l.$slots, "popup-calendar", {}, () => [
           te(ie, {
-            visible: p.value.visible,
-            eventData: p.value.event,
+            visible: m.value.visible,
+            eventData: m.value.event,
             popupFields: l.popupFields,
             closeButtonText: "Close",
-            onClose: W,
-            onHandleDelete: $
+            onClose: N,
+            onHandleDelete: H
           }, null, 8, ["visible", "eventData", "popupFields"])
         ])
       ])
