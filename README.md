@@ -94,10 +94,10 @@ const handleEventDelete = (id) => {
 
  The `popup-calendar` slot provides a way to define your custom popup design for viewing and interacting with event details. This slot is especially useful if you want to personalize the popup display with additional data, styles, or actions.
 
-| Name              | Parameters                  | Description                                               |
-| ------------------|-----------------------| ----------------------------------------------------------|
-| default           | None                  | Custom content template for the default slot.             |
-| popup-calendar    | `Number | String`     | Triggered when an event is deleted via the popup.         |
+| Name              | Description                                              |
+| ------------------|----------------------------------------------------------|
+| default           | Custom content template for the default slot.            |
+| popup-calendar    | Allows you to create a customized popup for displaying and editing event data.|
 
 
  ## Required Fields in schedules
