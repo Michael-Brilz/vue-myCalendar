@@ -77,10 +77,10 @@
           <!-- Fallback: Default popup -->
           <Popup
             :visible="eventInfoPopup.visible"
-            :eventData="eventInfoPopup.event"
-            :popupFields="popupFields"
+            :eventData="eventInfoPopup.event || {}"
+            :popupFields="popupFields || []"
             closeButtonText="Close"
-            @close="closeEventInfoPopup"
+            @handleClose="closeEventInfoPopup"
             @handleDelete="emitDeleteEvent"
           />
         </slot>
@@ -134,11 +134,6 @@ const newEvent = ref<Partial<EventInfo>>({ start: '', end: '', date: '', color: 
 const eventInfoPopup = ref<{ visible: boolean; event: EventInfo | {} }>({ visible: false, event: {} });
 const currentWeekOffset = ref(0);
 
-// Helper function to check if event is of type EventInfo
-function isEventInfo(event: any): event is EventInfo {
-  return (event as EventInfo).title !== undefined;
-}
-
 const addEvent = async () => {
 const event: Partial<EventInfo> = {
   start: newEvent.value.start,
@@ -163,7 +158,7 @@ Object.keys(newEvent.value).forEach((key) => {
 const loadEvents = () => {
 if (!additionalFields.value.length || !schedules.value.length) return;
 
-events.value = {}; // Events-Objekt leeren
+events.value = {};
 
 schedules.value.forEach((event) => {
   const eventDate = event.date;
@@ -176,14 +171,6 @@ schedules.value.forEach((event) => {
 };
 
 watchEffect(loadEvents);
-
-// Function to remove an event
-const removeEventById = (eventId: number | string) => {
-for (const date in events.value) {
-  events.value[date] = events.value[date].filter(event => event.id !== eventId);
-}
-closeEventInfoPopup();
-};
 
 // Helper for calculating the date for each day of the week
 const getDateForWeekday = (weekdayIndex: number) => {
