@@ -71,14 +71,26 @@
       </div>
     </div>
 
-<Popup
-  :visible="eventInfoPopup.visible"
-  :eventData="eventInfoPopup.event"
-  :popupFields="popupFields"
-  closeButtonText="Close"
-  @close="closeEventInfoPopup"
-  @handleDelete="emitDeleteEvent"
-/>
+   <!-- Default or custom popup -->
+   <div>
+        <slot 
+          name="popup-calendar" 
+          :visible="eventInfoPopup.visible" 
+          :eventData="eventInfoPopup.event" 
+          :close="closeEventInfoPopup" 
+          :delete="emitDeleteEvent"
+        >
+          <!-- Fallback: Default popup -->
+          <Popup
+            :visible="eventInfoPopup.visible"
+            :eventData="eventInfoPopup.event"
+            :popupFields="popupFields"
+            closeButtonText="Close"
+            @close="closeEventInfoPopup"
+            @handleDelete="emitDeleteEvent"
+          />
+        </slot>
+      </div>
   </div>
 </template>
 
