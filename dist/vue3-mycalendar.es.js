@@ -1,4 +1,4 @@
-import { defineComponent as z, computed as f, openBlock as a, createElementBlock as u, createElementVNode as e, Fragment as b, renderList as y, toDisplayString as r, createTextVNode as j, renderSlot as B, createCommentVNode as K, ref as g, watchEffect as G, onMounted as J, normalizeClass as Q, normalizeStyle as M, withModifiers as R, withDirectives as T, vModelSelect as X, vModelDynamic as Z, vModelText as x, unref as ee, createVNode as te } from "vue";
+import { defineComponent as z, computed as f, openBlock as a, createElementBlock as u, createElementVNode as e, Fragment as b, renderList as y, toDisplayString as r, createTextVNode as j, renderSlot as B, createCommentVNode as K, ref as g, watchEffect as G, onMounted as J, normalizeClass as Q, normalizeStyle as M, withModifiers as R, withDirectives as D, vModelSelect as X, vModelDynamic as Z, vModelText as x, unref as ee, createVNode as te } from "vue";
 const se = {
   key: 0,
   class: "popup"
@@ -10,17 +10,17 @@ const se = {
     eventData: {},
     popupFields: {}
   },
-  emits: ["close", "handleDelete"],
-  setup(k, { emit: D }) {
-    const i = k, _ = D, L = f(() => i.popupFields || []), p = f(() => i.eventData || {}), E = (c) => c.replace(/_/g, " ").replace(/\b\w/g, (v) => v.toUpperCase()), h = f(() => L.value.length === 0 ? p.value : Object.keys(p.value).filter((c) => L.value.includes(c)).reduce((c, v) => (c[v] = p.value[v], c), {})), C = () => {
-      _("close");
+  emits: ["handleClose", "handleDelete"],
+  setup(k, { emit: C }) {
+    const d = k, h = C, L = f(() => d.popupFields || []), p = f(() => d.eventData || {}), E = (c) => c.replace(/_/g, " ").replace(/\b\w/g, (v) => v.toUpperCase()), _ = f(() => L.value.length === 0 ? p.value : Object.keys(p.value).filter((c) => L.value.includes(c)).reduce((c, v) => (c[v] = p.value[v], c), {})), T = () => {
+      h("handleClose");
     }, S = () => {
-      _("handleDelete", p.value.id);
+      h("handleDelete", p.value.id);
     };
     return (c, v) => c.visible ? (a(), u("div", se, [
       e("div", le, [
         p.value && Object.keys(p.value).length ? (a(), u("div", ne, [
-          (a(!0), u(b, null, y(h.value, (o, m) => (a(), u("div", {
+          (a(!0), u(b, null, y(_.value, (o, m) => (a(), u("div", {
             key: m,
             class: "popup-field"
           }, [
@@ -33,7 +33,7 @@ const se = {
         e("div", oe, [
           e("button", {
             class: "close-button",
-            onClick: C
+            onClick: T
           }, r(c.closeButtonText), 1),
           e("button", {
             class: "delete-button",
@@ -43,21 +43,21 @@ const se = {
       ])
     ])) : K("", !0);
   }
-}), ue = (k, D) => {
-  const i = k.__vccOpts || k;
-  for (const [_, L] of D)
-    i[_] = L;
-  return i;
-}, ie = /* @__PURE__ */ ue(ae, [["__scopeId", "data-v-f2be054c"]]), de = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2050%2050'%20width='50px'%20height='50px'%3e%3cpath%20d='M%2025%202%20C%2012.309295%202%202%2012.309295%202%2025%20C%202%2037.690705%2012.309295%2048%2025%2048%20C%2037.690705%2048%2048%2037.690705%2048%2025%20C%2048%2012.309295%2037.690705%202%2025%202%20z%20M%2025%204%20C%2036.609824%204%2046%2013.390176%2046%2025%20C%2046%2036.609824%2036.609824%2046%2025%2046%20C%2013.390176%2046%204%2036.609824%204%2025%20C%204%2013.390176%2013.390176%204%2025%204%20z%20M%2025%2011%20A%203%203%200%200%200%2022%2014%20A%203%203%200%200%200%2025%2017%20A%203%203%200%200%200%2028%2014%20A%203%203%200%200%200%2025%2011%20z%20M%2021%2021%20L%2021%2023%20L%2022%2023%20L%2023%2023%20L%2023%2036%20L%2022%2036%20L%2021%2036%20L%2021%2038%20L%2022%2038%20L%2023%2038%20L%2027%2038%20L%2028%2038%20L%2029%2038%20L%2029%2036%20L%2028%2036%20L%2027%2036%20L%2027%2021%20L%2026%2021%20L%2022%2021%20L%2021%2021%20z'/%3e%3c/svg%3e", re = ["for"], ce = { key: 0 }, ve = ["id", "onUpdate:modelValue"], pe = ["value"], me = { key: 1 }, be = ["id", "onUpdate:modelValue", "type"], ye = { class: "form-group" }, _e = {
+}), ue = (k, C) => {
+  const d = k.__vccOpts || k;
+  for (const [h, L] of C)
+    d[h] = L;
+  return d;
+}, de = /* @__PURE__ */ ue(ae, [["__scopeId", "data-v-f6709810"]]), ie = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2050%2050'%20width='50px'%20height='50px'%3e%3cpath%20d='M%2025%202%20C%2012.309295%202%202%2012.309295%202%2025%20C%202%2037.690705%2012.309295%2048%2025%2048%20C%2037.690705%2048%2048%2037.690705%2048%2025%20C%2048%2012.309295%2037.690705%202%2025%202%20z%20M%2025%204%20C%2036.609824%204%2046%2013.390176%2046%2025%20C%2046%2036.609824%2036.609824%2046%2025%2046%20C%2013.390176%2046%204%2036.609824%204%2025%20C%204%2013.390176%2013.390176%204%2025%204%20z%20M%2025%2011%20A%203%203%200%200%200%2022%2014%20A%203%203%200%200%200%2025%2017%20A%203%203%200%200%200%2028%2014%20A%203%203%200%200%200%2025%2011%20z%20M%2021%2021%20L%2021%2023%20L%2022%2023%20L%2023%2023%20L%2023%2036%20L%2022%2036%20L%2021%2036%20L%2021%2038%20L%2022%2038%20L%2023%2038%20L%2027%2038%20L%2028%2038%20L%2029%2038%20L%2029%2036%20L%2028%2036%20L%2027%2036%20L%2027%2021%20L%2026%2021%20L%2022%2021%20L%2021%2021%20z'/%3e%3c/svg%3e", re = ["for"], ce = { key: 0 }, ve = ["id", "onUpdate:modelValue"], pe = ["value"], me = { key: 1 }, be = ["id", "onUpdate:modelValue", "type"], ye = { class: "form-group" }, he = {
   for: "start",
   class: "form-label"
-}, he = { class: "form-group" }, ge = {
+}, _e = { class: "form-group" }, ge = {
   for: "end",
   class: "form-label"
 }, fe = { class: "form-group" }, ke = {
   for: "date",
   class: "form-label"
-}, Le = ["disabled"], De = { class: "calendar" }, Te = { class: "navigation" }, Ce = { class: "current-week" }, Se = { class: "hours-and-days" }, we = { class: "hours" }, Ee = { class: "weekdays-container" }, Fe = { class: "weekdays" }, Me = { class: "days" }, xe = ["onClick"], Ae = ["src"], ze = /* @__PURE__ */ z({
+}, Le = ["disabled"], Ce = { class: "calendar" }, De = { class: "navigation" }, Te = { class: "current-week" }, Se = { class: "hours-and-days" }, we = { class: "hours" }, Ee = { class: "weekdays-container" }, Fe = { class: "weekdays" }, Me = { class: "days" }, xe = ["onClick"], Ae = ["src"], ze = /* @__PURE__ */ z({
   __name: "ScheduleForm",
   props: {
     customClass: {},
@@ -71,17 +71,17 @@ const se = {
     labelsAndSettings: {}
   },
   emits: ["submitEvent", "handleDelete"],
-  setup(k, { emit: D }) {
-    const i = k, _ = D, L = f(() => i.weekdays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]), p = f(() => i.eventTitleColor || "#000"), E = f(() => i.eventTitleSize || "16px"), h = f(() => {
-      var l, s, t, n, d;
+  setup(k, { emit: C }) {
+    const d = k, h = C, L = f(() => d.weekdays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]), p = f(() => d.eventTitleColor || "#000"), E = f(() => d.eventTitleSize || "16px"), _ = f(() => {
+      var l, s, t, n, i;
       return {
-        startTimeLabel: ((l = i.labelsAndSettings) == null ? void 0 : l.startTimeLabel) || "Start Time",
-        endTimeLabel: ((s = i.labelsAndSettings) == null ? void 0 : s.endTimeLabel) || "End Time",
-        dateLabel: ((t = i.labelsAndSettings) == null ? void 0 : t.dateLabel) || "Date",
-        submitButtonText: ((n = i.labelsAndSettings) == null ? void 0 : n.submitButtonText) || "Add Entry",
-        calendarWeekLabel: ((d = i.labelsAndSettings) == null ? void 0 : d.calendarWeekLabel) || "CW"
+        startTimeLabel: ((l = d.labelsAndSettings) == null ? void 0 : l.startTimeLabel) || "Start Time",
+        endTimeLabel: ((s = d.labelsAndSettings) == null ? void 0 : s.endTimeLabel) || "End Time",
+        dateLabel: ((t = d.labelsAndSettings) == null ? void 0 : t.dateLabel) || "Date",
+        submitButtonText: ((n = d.labelsAndSettings) == null ? void 0 : n.submitButtonText) || "Add Entry",
+        calendarWeekLabel: ((i = d.labelsAndSettings) == null ? void 0 : i.calendarWeekLabel) || "CW"
       };
-    }), C = g(i.schedules), S = g(i.additionalFields), c = g([
+    }), T = g(d.schedules), S = g(d.additionalFields), c = g([
       "00:00",
       "01:00",
       "02:00",
@@ -114,28 +114,28 @@ const se = {
         info: o.value.info,
         color: o.value.color
       };
-      i.additionalFields.forEach((s) => {
+      d.additionalFields.forEach((s) => {
         l[s.model] = o.value[s.model];
-      }), _("submitEvent", l), Object.keys(o.value).forEach((s) => {
+      }), h("submitEvent", l), Object.keys(o.value).forEach((s) => {
         o.value[s] = "";
       });
     };
     G(() => {
-      !S.value.length || !C.value.length || (v.value = {}, C.value.forEach((l) => {
+      !S.value.length || !T.value.length || (v.value = {}, T.value.forEach((l) => {
         const s = l.date;
         v.value[s] || (v.value[s] = []), v.value[s].push(l);
       }));
     });
     const A = (l) => {
-      const s = /* @__PURE__ */ new Date(), t = s.getDay(), n = l + 1 - t + w.value * 7, d = new Date(s);
-      return d.setDate(s.getDate() + n), d.toISOString().substring(0, 10);
+      const s = /* @__PURE__ */ new Date(), t = s.getDay(), n = l + 1 - t + w.value * 7, i = new Date(s);
+      return i.setDate(s.getDate() + n), i.toISOString().substring(0, 10);
     }, I = () => {
       const l = /* @__PURE__ */ new Date(), s = new Date(l.getFullYear(), 0, 1), t = (l.getTime() - s.getTime()) / 864e5 + w.value * 7;
       return Math.ceil((t + s.getDay() + 1) / 7);
     }, O = () => w.value -= 1, U = () => w.value += 1, P = (l) => {
-      const s = parseInt(l.start.substring(0, 2)), t = parseInt(l.start.substring(3, 5)), n = parseInt(l.end.substring(0, 2)), d = parseInt(l.end.substring(3, 5)), F = s * 60 + t, W = n * 60 + d, Y = F * 40 / 60;
+      const s = parseInt(l.start.substring(0, 2)), t = parseInt(l.start.substring(3, 5)), n = parseInt(l.end.substring(0, 2)), i = parseInt(l.end.substring(3, 5)), F = s * 60 + t, W = n * 60 + i, Y = F * 40 / 60;
       let $ = (W - F) * 40 / 60;
-      return d === 0 && ($ += 40), {
+      return i === 0 && ($ += 40), {
         backgroundColor: l.color || "#a4d8ff",
         top: `${Y}px`,
         height: `${$}px`,
@@ -147,10 +147,10 @@ const se = {
     }, q = (l) => {
       m.value.event = l, m.value.visible = !0;
     }, N = () => m.value.visible = !1, H = (l) => {
-      _("handleDelete", l);
+      h("handleDelete", l);
     };
     return J(() => {
-      i.additionalFields.forEach((l) => {
+      d.additionalFields.forEach((l) => {
         o.value[l.model] = "";
       });
     }), (l, s) => (a(), u("div", {
@@ -170,7 +170,7 @@ const se = {
             class: "form-label"
           }, r(t.label) + ":", 9, re),
           t.type === "select" ? (a(), u("div", ce, [
-            T(e("select", {
+            D(e("select", {
               id: t.id,
               "onUpdate:modelValue": (n) => o.value[t.model] = n,
               required: "",
@@ -184,7 +184,7 @@ const se = {
               [X, o.value[t.model]]
             ])
           ])) : (a(), u("div", me, [
-            T(e("input", {
+            D(e("input", {
               id: t.id,
               "onUpdate:modelValue": (n) => o.value[t.model] = n,
               type: t.type,
@@ -196,8 +196,8 @@ const se = {
           ]))
         ]))), 128)),
         e("div", ye, [
-          e("label", _e, r(h.value.startTimeLabel || "Start Time") + ":", 1),
-          T(e("input", {
+          e("label", he, r(_.value.startTimeLabel || "Start Time") + ":", 1),
+          D(e("input", {
             id: "start",
             "onUpdate:modelValue": s[0] || (s[0] = (t) => o.value.start = t),
             type: "time",
@@ -207,9 +207,9 @@ const se = {
             [x, o.value.start]
           ])
         ]),
-        e("div", he, [
-          e("label", ge, r(h.value.endTimeLabel || "End Time") + ":", 1),
-          T(e("input", {
+        e("div", _e, [
+          e("label", ge, r(_.value.endTimeLabel || "End Time") + ":", 1),
+          D(e("input", {
             id: "end",
             "onUpdate:modelValue": s[1] || (s[1] = (t) => o.value.end = t),
             type: "time",
@@ -220,8 +220,8 @@ const se = {
           ])
         ]),
         e("div", fe, [
-          e("label", ke, r(h.value.dateLabel || "Date") + ":", 1),
-          T(e("input", {
+          e("label", ke, r(_.value.dateLabel || "Date") + ":", 1),
+          D(e("input", {
             id: "date",
             "onUpdate:modelValue": s[2] || (s[2] = (t) => o.value.date = t),
             type: "date",
@@ -235,15 +235,15 @@ const se = {
           type: "submit",
           disabled: !!v.value.processing,
           class: "submit-button"
-        }, r(h.value.submitButtonText || "Add Entry"), 9, Le)
+        }, r(_.value.submitButtonText || "Add Entry"), 9, Le)
       ], 32),
-      e("div", De, [
-        e("div", Te, [
+      e("div", Ce, [
+        e("div", De, [
           e("button", {
             class: "arrow-button",
             onClick: O
           }, "<"),
-          e("span", Ce, r(h.value.calendarWeekLabel || "CW") + " " + r(I()), 1),
+          e("span", Te, r(_.value.calendarWeekLabel || "CW") + " " + r(I()), 1),
           e("button", {
             class: "arrow-button",
             onClick: U
@@ -272,25 +272,25 @@ const se = {
                 key: n,
                 class: "day"
               }, [
-                (a(!0), u(b, null, y(c.value, (d) => (a(), u("div", {
-                  key: d,
+                (a(!0), u(b, null, y(c.value, (i) => (a(), u("div", {
+                  key: i,
                   class: "hour"
                 }))), 128)),
-                (a(!0), u(b, null, y(v.value[A(n)] || [], (d, F) => (a(), u("div", {
-                  key: d.id,
+                (a(!0), u(b, null, y(v.value[A(n)] || [], (i, F) => (a(), u("div", {
+                  key: i.id,
                   class: "event",
-                  style: M(P(d))
+                  style: M(P(i))
                 }, [
                   e("span", {
                     style: M({ color: p.value, fontSize: E.value })
-                  }, r(d.title), 5),
+                  }, r(i.title), 5),
                   s[4] || (s[4] = e("br", null, null, -1)),
                   e("button", {
                     class: "info-button",
-                    onClick: (W) => q(d)
+                    onClick: (W) => q(i)
                   }, [
                     e("img", {
-                      src: ee(de),
+                      src: ee(ie),
                       alt: "my-logo",
                       class: "small-logo"
                     }, null, 8, Ae)
@@ -303,12 +303,12 @@ const se = {
       ]),
       e("div", null, [
         B(l.$slots, "popup-calendar", {}, () => [
-          te(ie, {
+          te(de, {
             visible: m.value.visible,
-            eventData: m.value.event,
-            popupFields: l.popupFields,
+            eventData: m.value.event || {},
+            popupFields: l.popupFields || [],
             closeButtonText: "Close",
-            onClose: N,
+            onHandleClose: N,
             onHandleDelete: H
           }, null, 8, ["visible", "eventData", "popupFields"])
         ])
