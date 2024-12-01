@@ -73,13 +73,7 @@
 
    <!-- Default or custom popup -->
    <div>
-        <slot 
-          name="popup-calendar" 
-          :visible="eventInfoPopup.visible" 
-          :eventData="eventInfoPopup.event" 
-          :close="closeEventInfoPopup" 
-           :deleteEvent="emitDeleteEvent"
-        >
+        <slot name="popup-calendar">
           <!-- Fallback: Default popup -->
           <Popup
             :visible="eventInfoPopup.visible"
