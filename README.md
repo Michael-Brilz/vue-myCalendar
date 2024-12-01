@@ -80,7 +80,7 @@ const handleEventDelete = (id) => {
 | additionalFields  |   Array     | A list of additional fields for the event form.               |
 | customClass       |   String    | A custom CSS class to customise the component layout.         |
 | labelsAndSettings |   Object    | An object for customising the labels and text settings of the calendar component. |
-| popupFields       |   Array     | An array of fields to be displayed in the popup for event details. |
+| popupFields       |   Array     | An array of fields to be displayed in the popup for event details, if the default Popup would be use |
 
 
 ## Emitted Events
@@ -88,9 +88,18 @@ const handleEventDelete = (id) => {
 | Event Name        | Payload               | Description                                               |
 | ------------------|-----------------------| ----------------------------------------------------------|
 | submitEvent       | EventInfo             | Triggered when a new event is added via the form.         |
-| handleDelete      |   `Number | String`   | Triggered when an event is deleted via the popup.         |
+| handleDelete      | EventInfo             | Is triggered when an event is deleted via the popup in the default popup.         |
 
- 
+ ## Slots
+
+ The `popup-calendar` slot provides a way to define your custom popup design for viewing and interacting with event details. This slot is especially useful if you want to personalize the popup display with additional data, styles, or actions.
+
+| Name              | Parameters                  | Description                                               |
+| ------------------|-----------------------| ----------------------------------------------------------|
+| default           | None                  | Custom content template for the default slot.             |
+| popup-calendar    | `Number | String`     | Triggered when an event is deleted via the popup.         |
+
+
  ## Required Fields in schedules
 
 Each event object within the schedules array must include the following standard fields:
