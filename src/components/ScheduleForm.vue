@@ -78,7 +78,7 @@
           :visible="eventInfoPopup.visible" 
           :eventData="eventInfoPopup.event" 
           :close="closeEventInfoPopup" 
-          :delete="emitDeleteEvent"
+           :deleteEvent="emitDeleteEvent"
         >
           <!-- Fallback: Default popup -->
           <Popup
