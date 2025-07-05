@@ -19,7 +19,7 @@
     },
     "./dist/style.css": "./dist/style.css"
   },
-  "types": "dist/main.d.ts",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
