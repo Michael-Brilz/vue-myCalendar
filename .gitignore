@@ -17,6 +17,7 @@ pnpm-debug.log*
 .idea/
 *.sublime-project
 *.sublime-workspace
+dist/
 
 # MacOS system files
 .DS_Store

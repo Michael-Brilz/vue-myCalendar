@@ -7,17 +7,19 @@
       :labels-and-settings="labelsAndSettings"
       :popup-fields="popupFields"
       @deleteEvent="handleDeleteEvent"
+      @update-event="handleUpdateEvent"
     />
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue';
 import ScheduleForm from './ScheduleForm.vue';
+import { EventInfo } from '../types/EventInterfaces';
 
 const schedules = ref([
-  { id: 1, title: 'Meeting', date: '2024-11-04', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1', color: '#e2Be33' },
-  { id: 2, title: 'Workshop', date: '2024-11-07', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2', color: '#33C3FF' },
+  { id: 1, title: 'Meeting', date: '2025-07-04', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1', color: '#e2Be33' },
+  { id: 2, title: 'Workshop', date: '2025-07-04', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2', color: '#33C3FF' },
 ]);
 
 const popupFields = ref(['title', 'date', 'start', 'end']);
@@ -39,6 +41,12 @@ const handleDeleteEvent = (eventId) => {
   schedules.value = schedules.value.filter(event => event.id !== eventId);
 };
 
+const handleUpdateEvent = (event: EventInfo) => {
+  const index = schedules.value.findIndex(e => e.id === event.id);
+  if (index !== -1) {
+    schedules.value[index] = event;
+  }
+};
 </script>
 
 <style scoped lang="scss">

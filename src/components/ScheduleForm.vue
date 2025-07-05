@@ -1,7 +1,6 @@
 <template>
   <div :class="customClass" :style="customStyles">
     <form class="form-container" @submit.prevent="addEvent">
-      <!-- Dynamic fields-->
       <div v-for="field in additionalFields" :key="field.id" class="form-group">
         <label :for="field.id" class="form-label">{{ field.label }}:</label>
         <div v-if="field.type === 'select'">
@@ -12,41 +11,38 @@
           </select>
         </div>
         <div v-else>
-          <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input"/>
+          <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input" />
         </div>
       </div>
 
-      <!-- Fixed fields -->
       <div class="form-group">
-        <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel || 'Start Time' }}:</label>
+        <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel }}:</label>
         <input id="start" v-model="newEvent.start" type="time" required class="form-input" />
       </div>
       <div class="form-group">
-        <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel || 'End Time' }}:</label>
+        <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel }}:</label>
         <input id="end" v-model="newEvent.end" type="time" required class="form-input" />
       </div>
       <div class="form-group">
-        <label for="date" class="form-label">{{ labelsAndSettings.dateLabel || 'Date' }}:</label>
+        <label for="date" class="form-label">{{ labelsAndSettings.dateLabel }}:</label>
         <input id="date" v-model="newEvent.date" type="date" required class="form-input" />
       </div>
 
-      <button type="submit" :disabled="Boolean(events.processing)" class="submit-button">
-        {{ labelsAndSettings.submitButtonText || 'Add Entry' }}
+      <button type="submit" class="submit-button">
+        {{ labelsAndSettings.submitButtonText }}
       </button>
     </form>
 
     <div class="calendar">
       <div class="navigation">
         <button class="arrow-button" @click="prevWeek">&lt;</button>
-        <span class="current-week">{{ labelsAndSettings.calendarWeekLabel || 'CW' }} {{ getCurrentWeekNumber() }}</span>
+        <span class="current-week">{{ labelsAndSettings.calendarWeekLabel }} {{ getCurrentWeekNumber() }}</span>
         <button class="arrow-button" @click="nextWeek">&gt;</button>
       </div>
       <div class="hours-and-days">
         <div class="hours">
           <div class="empty-slot"></div>
-          <div v-for="hour in hours" :key="hour" class="hour">
-            {{ hour }}
-          </div>
+          <div v-for="hour in hours" :key="hour" class="hour">{{ hour }}</div>
         </div>
         <div class="weekdays-container">
           <ul class="weekdays">
@@ -56,198 +52,210 @@
             </li>
           </ul>
           <div class="days">
-            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="day">
+            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="day"
+                 @dragover.prevent
+                 @drop="onDrop($event, dayIndex)">
               <div v-for="hour in hours" :key="hour" class="hour"></div>
-              <div v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []" 
-                   :key="event.id" class="event" :style="getEventStyle(event)">
-                   <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
-                   <button class="info-button" @click="showEventInfo(event)">
-                      <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
-                   </button>
+              <div
+                v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []"
+                :key="event.id"
+                class="event"
+                :style="getEventStyle(event)"
+                draggable="true"
+                @dragstart="onDragStart($event, event)"
+                @dragend="onDragEnd"
+              >
+                <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
+                <button class="info-button" @click="showEventInfo(event)">
+                  <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
+                </button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-   <!-- Default or custom popup -->
-   <div>
-        <slot name="popup-calendar">
-          <!-- Fallback: Default popup -->
-          <Popup
-            :visible="eventInfoPopup.visible"
-            :eventData="eventInfoPopup.event"
-            :popupFields="popupFields"
-            closeButtonText="Close"
-            @close="closeEventInfoPopup"
-            @handleDelete="emitDeleteEvent"
-          />
-        </slot>
-      </div>
+    <slot name="popup-calendar">
+      <Popup
+        :visible="eventInfoPopup.visible"
+        :eventData="eventInfoPopup.event || {}"
+        :popupFields="popupFields || []"
+        closeButtonText="Close"
+        @close="closeEventInfoPopup"
+        @handleDelete="emitDeleteEvent"
+      />
+    </slot>
   </div>
 </template>
 
-
-<script lang="ts" setup>
+<script setup lang="ts">
 import { ref, computed, watchEffect, onMounted } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
 
 const props = defineProps<{
-customClass: string,
-customStyles?: Record<string, any>,
-schedules: EventInfo[];
-additionalFields: Field[],
-weekdays?: string[],
-eventTitleColor?: string,
-eventTitleSize?: string
-popupFields?: string[],
-labelsAndSettings?: LabelsAndSettings;
+  customClass: string,
+  customStyles?: Record<string, any>,
+  schedules: EventInfo[];
+  additionalFields: Field[],
+  weekdays?: string[],
+  eventTitleColor?: string,
+  eventTitleSize?: string,
+  popupFields?: string[],
+  labelsAndSettings?: LabelsAndSettings
 }>();
 
-const emit = defineEmits(['submitEvent', 'handleDelete']);
+const emit = defineEmits(['submitEvent', 'handleDelete', 'update-event']);
 
 const weekdays = computed(() => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
 const eventTitleColor = computed(() => props.eventTitleColor || '#000');
 const eventTitleSize = computed(() => props.eventTitleSize || '16px');
 const labelsAndSettings = computed(() => ({
-startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
-endTimeLabel: props.labelsAndSettings?.endTimeLabel || 'End Time',
-dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
-submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
-calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
+  startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
+  endTimeLabel: props.labelsAndSettings?.endTimeLabel || 'End Time',
+  dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
+  submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
+  calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
 }));
 
-// Ref variables
 const schedules = ref(props.schedules);
 const additionalFields = ref(props.additionalFields);
-const hours = ref([
-'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', 
-'08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', 
-'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
-]);
+const hours = ref(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
 
 const events = ref<Record<string, EventInfo[]>>({});
 const newEvent = ref<Partial<EventInfo>>({ start: '', end: '', date: '', color: '' });
 const eventInfoPopup = ref<{ visible: boolean; event: EventInfo | {} }>({ visible: false, event: {} });
 const currentWeekOffset = ref(0);
+const draggedEvent = ref<EventInfo | null>(null);
 
-// Helper function to check if event is of type EventInfo
-function isEventInfo(event: any): event is EventInfo {
-  return (event as EventInfo).title !== undefined;
-}
-
-const addEvent = async () => {
-const event: Partial<EventInfo> = {
-  start: newEvent.value.start,
-  end: newEvent.value.end,
-  date: newEvent.value.date,
-  info: newEvent.value.info,
-  color: newEvent.value.color,
+const addEvent = () => {
+  const event: Partial<EventInfo> = {
+    start: newEvent.value.start,
+    end: newEvent.value.end,
+    date: newEvent.value.date,
+    info: newEvent.value.info,
+    color: newEvent.value.color,
+  };
+  props.additionalFields.forEach((field) => {
+    event[field.model] = newEvent.value[field.model];
+  });
+  emit('submitEvent', event as EventInfo);
+  Object.keys(newEvent.value).forEach((key) => {
+    newEvent.value[key as keyof EventInfo] = '';
+  });
 };
 
-props.additionalFields.forEach((field) => {
-  event[field.model] = newEvent.value[field.model];
-});
-
-emit('submitEvent', event as EventInfo);
-
-Object.keys(newEvent.value).forEach((key) => {
-  newEvent.value[key as keyof EventInfo] = '';
-});
-};
-
-// Load and assign events
 const loadEvents = () => {
-if (!additionalFields.value.length || !schedules.value.length) return;
-
-events.value = {}; // Events-Objekt leeren
-
-schedules.value.forEach((event) => {
-  const eventDate = event.date;
-
-  if (!events.value[eventDate]) {
-    events.value[eventDate] = [];
-  }
-  events.value[eventDate].push(event);
-});
+  if (!additionalFields.value.length || !schedules.value.length) return;
+  events.value = {};
+  schedules.value.forEach((event) => {
+    const eventDate = event.date;
+    if (!events.value[eventDate]) events.value[eventDate] = [];
+    events.value[eventDate].push(event);
+  });
 };
-
 watchEffect(loadEvents);
 
-// Function to remove an event
-const removeEventById = (eventId: number | string) => {
-for (const date in events.value) {
-  events.value[date] = events.value[date].filter(event => event.id !== eventId);
-}
-closeEventInfoPopup();
-};
-
-// Helper for calculating the date for each day of the week
 const getDateForWeekday = (weekdayIndex: number) => {
-const today = new Date();
-const currentWeekday = today.getDay();
-const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
-const resultDate = new Date(today);
-resultDate.setDate(today.getDate() + distance);
-return resultDate.toISOString().substring(0, 10);
+  const today = new Date();
+  const currentWeekday = today.getDay();
+  const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
+  const resultDate = new Date(today);
+  resultDate.setDate(today.getDate() + distance);
+  return resultDate.toISOString().substring(0, 10);
 };
 
-// Helper for calculating the calendar week
 const getCurrentWeekNumber = () => {
-const today = new Date();
-const startOfYear = new Date(today.getFullYear(), 0, 1);
-const pastDaysOfYear = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
-return Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+  const today = new Date();
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const pastDays = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
+  return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
 };
 
-// Navigation between weeks
 const prevWeek = () => currentWeekOffset.value -= 1;
 const nextWeek = () => currentWeekOffset.value += 1;
 
-// Styling of an event based on start and end time
 const getEventStyle = (event: EventInfo) => {
-const startHour = parseInt(event.start.substring(0, 2));
-const startMinutes = parseInt(event.start.substring(3, 5));
-const endHour = parseInt(event.end.substring(0, 2));
-const endMinutes = parseInt(event.end.substring(3, 5));
-
-const startTotalMinutes = startHour * 60 + startMinutes;
-const endTotalMinutes = endHour * 60 + endMinutes;
-
-const topPosition = (startTotalMinutes * 40) / 60;
-let height = ((endTotalMinutes - startTotalMinutes) * 40) / 60;
-
-if (endMinutes === 0) height += 40;
-
-return {
-  backgroundColor: event.color || '#a4d8ff',
-  top: `${topPosition}px`,
-  height: `${height}px`,
-  position: 'absolute' as 'absolute',
-  left: 0,
-  right: 0,
-  zIndex: 1,
+  const start = parseTime(event.start);
+  const end = parseTime(event.end);
+  const top = (start.totalMinutes * 40) / 60;
+  const height = ((end.totalMinutes - start.totalMinutes) * 40) / 60;
+  return {
+    backgroundColor: event.color || '#a4d8ff',
+    top: `${top}px`,
+    height: `${height}px`,
+    position: 'absolute' as const,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+  };
 };
+
+const parseTime = (timeStr: string) => {
+  const [h, m] = timeStr.split(':').map(Number);
+  return { h, m, totalMinutes: h * 60 + m };
+};
+
+const getDurationInMinutes = (start: string, end: string) => parseTime(end).totalMinutes - parseTime(start).totalMinutes;
+
+const calculateNewEnd = (start: string, duration: number) => {
+  const total = parseTime(start).totalMinutes + duration;
+  const h = Math.floor(total / 60).toString().padStart(2, '0');
+  const m = (total % 60).toString().padStart(2, '0');
+  return `${h}:${m}`;
+};
+
+const onDragStart = (_event: DragEvent, event: EventInfo) => {
+  draggedEvent.value = event;
+};
+
+const onDragEnd = () => {
+  draggedEvent.value = null;
+};
+
+const onDrop = (e: DragEvent, dayIndex: number) => {
+  if (!draggedEvent.value) return;
+  const target = e.currentTarget as HTMLElement;
+  const rect = target.getBoundingClientRect();
+  const dropY = e.clientY - rect.top;   
+  const minutesPerPixel = 60 / 40;
+  const newStartMinutes = Math.round(dropY * minutesPerPixel / 15) * 15;
+  const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
+  const duration = getDurationInMinutes(draggedEvent.value.start, draggedEvent.value.end);
+  const newEnd = calculateNewEnd(newStart, duration);
+  const newDate = getDateForWeekday(dayIndex);
+
+  const updatedEvent = {
+    ...draggedEvent.value,
+    start: newStart,
+    end: newEnd,
+    date: newDate,
+  };
+
+  emit('update-event', updatedEvent);
+
+  const oldDate = draggedEvent.value.date;
+  events.value[oldDate] = events.value[oldDate]?.filter(ev => ev.id !== draggedEvent.value!.id) || [];
+  events.value[newDate] = [...(events.value[newDate] || []), updatedEvent];
+  draggedEvent.value = null;
 };
 
 const showEventInfo = (event: EventInfo) => {
-eventInfoPopup.value.event = event;
-eventInfoPopup.value.visible = true;
+  eventInfoPopup.value.event = event;
+  eventInfoPopup.value.visible = true;
 };
 
-const closeEventInfoPopup = () => eventInfoPopup.value.visible = false;
-
-const emitDeleteEvent = (eventId) => {
-  emit('handleDelete', eventId);
+const closeEventInfoPopup = () => {
+  eventInfoPopup.value.visible = false;
 };
+
+const emitDeleteEvent = (eventId: number) => emit('handleDelete', eventId);
 
 onMounted(() => {
-props.additionalFields.forEach((field) => {
-  newEvent.value[field.model] = '';
-});
+  props.additionalFields.forEach(field => {
+    newEvent.value[field.model] = '';
+  });
 });
 </script>
   
