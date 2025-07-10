@@ -67,7 +67,7 @@
               >
                 <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
                 <button class="info-button" @click="showEventInfo(event)">
-                  <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
+                  <img :src="myLogoSrc" alt="info" class="small-logo" />
                 </button>
               </div>
             </div>
@@ -75,16 +75,28 @@
         </div>
       </div>
     </div>
-    <slot name="popup-calendar">
-      <Popup
-        :visible="eventInfoPopup.visible"
-        :eventData="eventInfoPopup.event || {}"
-        :popupFields="popupFields || []"
-        closeButtonText="Close"
-        @close="closeEventInfoPopup"
-        @handleDelete="emitDeleteEvent"
-      />
-    </slot>
+
+    <!-- SLOT FÜR BENUTZERDEFINIERTES POPUP -->
+    <slot
+      name="popup-calendar"
+      v-if="$slots['popup-calendar']"
+    ></slot>
+
+    <!-- DEFAULT POPUP -->
+    <Popup
+      v-else
+      :visible="eventInfoPopup.visible"
+      :eventData="eventInfoPopup.event || {}"
+      :popupFields="popupFields || []"
+      closeButtonText="Close"
+      :todosLabel="labelsAndSettings.todosLabel || 'To-Do'"
+      :participantsLabel="labelsAndSettings.participantsLabel || 'Teammates'"
+      :todoPlaceholder="placeholderSettings.todo || 'Neues To-do...'"
+      :participantPlaceholder="placeholderSettings.participant || 'Teilnehmer:in hinzufügen...'"
+      @close="closeEventInfoPopup"
+      @handleDelete="emitDeleteEvent"
+      @updateEvent="handlePopupUpdate"
+    />
   </div>
 </template>
 
@@ -95,18 +107,22 @@ import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
 
 const props = defineProps<{
-  customClass: string,
-  customStyles?: Record<string, any>,
+  customClass: string;
+  customStyles?: Record<string, any>;
   schedules: EventInfo[];
-  additionalFields: Field[],
-  weekdays?: string[],
-  eventTitleColor?: string,
-  eventTitleSize?: string,
-  popupFields?: string[],
-  labelsAndSettings?: LabelsAndSettings
+  additionalFields: Field[];
+  weekdays?: string[];
+  eventTitleColor?: string;
+  eventTitleSize?: string;
+  popupFields?: string[];
+  labelsAndSettings?: LabelsAndSettings;
+  placeholderSettings?: {
+    todo?: string;
+    participant?: string;
+  };
 }>();
 
-const emit = defineEmits(['submitEvent', 'handleDelete', 'update-event']);
+const emit = defineEmits(['submitEvent', 'handleDelete', 'update-event', 'show-info']);
 
 const weekdays = computed(() => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
 const eventTitleColor = computed(() => props.eventTitleColor || '#000');
@@ -117,7 +133,11 @@ const labelsAndSettings = computed(() => ({
   dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
   submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
   calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
+  todosLabel: props.labelsAndSettings?.todosLabel,
+  participantsLabel: props.labelsAndSettings?.participantsLabel,
 }));
+
+const placeholderSettings = computed(() => props.placeholderSettings || {});
 
 const schedules = ref(props.schedules);
 const additionalFields = ref(props.additionalFields);
@@ -144,6 +164,10 @@ const addEvent = () => {
   Object.keys(newEvent.value).forEach((key) => {
     newEvent.value[key as keyof EventInfo] = '';
   });
+};
+
+const handlePopupUpdate = (updated: EventInfo) => {
+  emit('update-event', updated);
 };
 
 const loadEvents = () => {
@@ -218,7 +242,7 @@ const onDrop = (e: DragEvent, dayIndex: number) => {
   if (!draggedEvent.value) return;
   const target = e.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
-  const dropY = e.clientY - rect.top;   
+  const dropY = e.clientY - rect.top;
   const minutesPerPixel = 60 / 40;
   const newStartMinutes = Math.round(dropY * minutesPerPixel / 15) * 15;
   const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
@@ -244,6 +268,8 @@ const onDrop = (e: DragEvent, dayIndex: number) => {
 const showEventInfo = (event: EventInfo) => {
   eventInfoPopup.value.event = event;
   eventInfoPopup.value.visible = true;
+
+  emit('show-info', event);
 };
 
 const closeEventInfoPopup = () => {

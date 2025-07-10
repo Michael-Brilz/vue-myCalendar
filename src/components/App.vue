@@ -8,7 +8,19 @@
       :popup-fields="popupFields"
       @deleteEvent="handleDeleteEvent"
       @update-event="handleUpdateEvent"
-    />
+      @show-info="openCustomPopup"
+    >
+    <template #popup-calendar>
+    <div v-if="customPopup.visible" class="test-popup">
+      <div class="test-popup-box">
+        <h3>🎉 My own Popup!</h3>
+        <p><strong>{{ customPopup.event?.title }}</strong></p>
+        <p>{{ customPopup.event?.date }} — {{ customPopup.event?.start }} to {{ customPopup.event?.end }}</p>
+        <button @click="closeCustomPopup">Close</button>
+      </div>
+    </div>
+</template>
+    </ScheduleForm>
   </div>
 </template>
 
@@ -37,9 +49,28 @@ const labelsAndSettings = computed(() => ({
   calendarWeekLabel: 'Week',       
 }));
 
+const customPopup = ref<{ visible: boolean; event: EventInfo | null }>({
+  visible: false,
+  event: null
+});
+
+const openCustomPopup = (event: EventInfo) => {
+  customPopup.value.visible = true;
+  customPopup.value.event = event;
+};
+
+const closeCustomPopup = () => {
+  customPopup.value.visible = false;
+};
+
 const handleDeleteEvent = (eventId) => {
   schedules.value = schedules.value.filter(event => event.id !== eventId);
 };
+
+const testPopup = ref<{ visible: boolean; event: EventInfo | null }>({
+  visible: true,
+  event: schedules.value[0],
+});
 
 const handleUpdateEvent = (event: EventInfo) => {
   const index = schedules.value.findIndex(e => e.id === event.id);
