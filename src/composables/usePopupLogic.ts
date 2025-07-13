@@ -1,65 +1,87 @@
-import { ref, computed, reactive, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { PopupProps } from '../types/EventInterfaces';
 
-export function usePopupLogic(props: PopupProps & {
-  popupFields?: string[];
-  todos?: string[];
-  participants?: string[];
-}, emit: any) {
+export function usePopupLogic(
+  props: PopupProps & {
+    popupFields?: string[];
+  },
+  emit: any
+) {
   const popupFields = computed(() => props.popupFields || []);
-  const eventData = computed(() => props.eventData || {});
-  const editableEventData = reactive({ ...eventData.value });
 
-  watch(eventData, (newData) => {
-    Object.assign(editableEventData, newData);
-  });
+  const editableEventData = ref({ ...props.eventData });
 
-  // Todos
-  const localTodos = ref<string[]>([...(props.todos ?? [])]);
-  const newTodo = ref('');
-  const addTodo = () => {
-    const trimmed = newTodo.value.trim();
-    if (trimmed) {
-      localTodos.value.push(trimmed);
-      newTodo.value = '';
-    }
-  };
-  watch(localTodos, (val) => emit('update:todos', val));
+  const localTodos = ref<string[]>([...(props.eventData?.todos || [])]);
+  const localParticipants = ref<string[]>([...(props.eventData?.participants || [])]);
 
-  // Participants
-  const localParticipants = ref<string[]>([...(props.participants ?? [])]);
-  const newParticipant = ref('');
-  const addParticipant = () => {
-    const trimmed = newParticipant.value.trim();
-    if (trimmed) {
-      localParticipants.value.push(trimmed);
-      newParticipant.value = '';
-    }
-  };
-  watch(localParticipants, (val) => emit('update:participants', val));
+  watch(() => props.eventData, (newVal) => {
+  if (!newVal) return;
+  editableEventData.value = { ...newVal };
+  localTodos.value = [...(newVal.todos || [])];
+  localParticipants.value = [...(newVal.participants || [])];
+  }, { immediate: true });
 
   const formatKey = (key: string): string => {
     return key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   const filteredEventData = computed(() => {
-    if (popupFields.value.length === 0) return editableEventData;
+    if (popupFields.value.length === 0) return editableEventData.value;
     return Object.fromEntries(
-      Object.entries(editableEventData).filter(([key]) => popupFields.value.includes(key))
+      Object.entries(editableEventData.value).filter(([key]) => popupFields.value!.includes(key))
     );
   });
 
+  const updateField = (key: string, value: any) => {
+    editableEventData.value[key] = value;
+    emit('updateEvent', editableEventData.value);
+  };
+
+  const newTodo = ref('');
+  const addTodo = () => {
+    const todo = newTodo.value.trim();
+    if (!todo) return;
+    localTodos.value.push(todo);
+    newTodo.value = '';
+    emit('update:todos', { todos: [...localTodos.value], eventId: editableEventData.value.id });
+  };
+
+  const removeTodo = (index: number) => {
+    localTodos.value.splice(index, 1);
+    emit('update:todos', { todos: [...localTodos.value], eventId: editableEventData.value.id });
+  };
+
+  const newParticipant = ref('');
+  const addParticipant = () => {
+    const participant = newParticipant.value.trim();
+    if (!participant) return;
+    localParticipants.value.push(participant);
+    newParticipant.value = '';
+    emit('update:participants', { participants: [...localParticipants.value], eventId: editableEventData.value.id });
+  };
+
+  const removeParticipant = (index: number) => {
+    localParticipants.value.splice(index, 1);
+    emit('update:participants', { participants: [...localParticipants.value], eventId: editableEventData.value.id });
+  };
+
   return {
-    popupFields,
-    eventData,
     editableEventData,
+    popupFields,
+    filteredEventData,
+    formatKey,
+    updateField,
+
+    // Todos
     localTodos,
     newTodo,
     addTodo,
+    removeTodo,
+
+    // Participants
     localParticipants,
     newParticipant,
     addParticipant,
-    filteredEventData,
-    formatKey,
+    removeParticipant,
   };
 }

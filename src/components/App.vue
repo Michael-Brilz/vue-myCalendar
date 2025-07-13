@@ -1,26 +1,10 @@
 <template>
   <div class="wrapper">
-    <ScheduleForm 
-      :schedules="schedules" 
-      :additional-fields="additionalFields" 
-      custom-class="customize-schedule-form"
-      :labels-and-settings="labelsAndSettings"
-      :popup-fields="popupFields"
-      @deleteEvent="handleDeleteEvent"
-      @update-event="handleUpdateEvent"
-      @show-info="openCustomPopup"
-    >
-    <template #popup-calendar>
-    <div v-if="customPopup.visible" class="test-popup">
-      <div class="test-popup-box">
-        <h3>🎉 My own Popup!</h3>
-        <p><strong>{{ customPopup.event?.title }}</strong></p>
-        <p>{{ customPopup.event?.date }} — {{ customPopup.event?.start }} to {{ customPopup.event?.end }}</p>
-        <button @click="closeCustomPopup">Close</button>
-      </div>
-    </div>
-</template>
-    </ScheduleForm>
+    <ScheduleForm :schedules="schedules" :additional-fields="additionalFields" custom-class="customize-schedule-form"
+      :labels-and-settings="labelsAndSettings" :popup-fields="popupFields" :popup-visible="isPopupVisible"
+      :popup-event="selectedEvent" @update:todos="handleUpdatedTodos" @update:participants="handleUpdatedParticipants"
+      @delete-event="handleDeleteEvent" @update-event="handleUpdateEvent" @show-info="handleShowInfo"
+      @close-popup="isPopupVisible = false" />
   </div>
 </template>
 
@@ -30,11 +14,36 @@ import ScheduleForm from './ScheduleForm.vue';
 import { EventInfo } from '../types/EventInterfaces';
 
 const schedules = ref([
-  { id: 1, title: 'Meeting', date: '2025-07-04', start: '09:00', end: '10:00', teacher: 'Malika Heaney', room: 'Room 1', color: '#e2Be33' },
-  { id: 2, title: 'Workshop', date: '2025-07-04', start: '13:00', end: '15:00', teacher: 'John Doe', room: 'Room 2', color: '#33C3FF' },
+  {
+    id: 1,
+    title: 'Meeting',
+    date: '2025-07-04',
+    start: '09:00',
+    end: '10:00',
+    teacher: 'Malika Heaney',
+    room: 'Room 1',
+    color: '#e2Be33',
+    todos: ['Prepare', 'Print documents'],
+    participants: ['Malika', 'Jonas']
+  },
+  {
+    id: 2,
+    title: 'Workshop',
+    date: '2025-07-04',
+    start: '13:00',
+    end: '15:00',
+    teacher: 'John Doe',
+    room: 'Room 2',
+    color: '#33C3FF',
+    todos: ['Set up the projector'],
+    participants: ['John', 'Lena']
+  },
 ]);
 
+
 const popupFields = ref(['title', 'date', 'start', 'end']);
+const isPopupVisible = ref(false);
+const selectedEvent = ref<EventInfo | null>(null);
 
 const additionalFields = ref([
   { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
@@ -42,35 +51,16 @@ const additionalFields = ref([
 ]);
 
 const labelsAndSettings = computed(() => ({
-  startTimeLabel: 'Start Time',    
-  endTimeLabel: 'End Time',        
-  dateLabel: 'Date',               
-  submitButtonText: 'Add Event',   
-  calendarWeekLabel: 'Week',       
+  startTimeLabel: 'Start Time',
+  endTimeLabel: 'End Time',
+  dateLabel: 'Date',
+  submitButtonText: 'Add Event',
+  calendarWeekLabel: 'Week',
 }));
-
-const customPopup = ref<{ visible: boolean; event: EventInfo | null }>({
-  visible: false,
-  event: null
-});
-
-const openCustomPopup = (event: EventInfo) => {
-  customPopup.value.visible = true;
-  customPopup.value.event = event;
-};
-
-const closeCustomPopup = () => {
-  customPopup.value.visible = false;
-};
 
 const handleDeleteEvent = (eventId) => {
   schedules.value = schedules.value.filter(event => event.id !== eventId);
 };
-
-const testPopup = ref<{ visible: boolean; event: EventInfo | null }>({
-  visible: true,
-  event: schedules.value[0],
-});
 
 const handleUpdateEvent = (event: EventInfo) => {
   const index = schedules.value.findIndex(e => e.id === event.id);
@@ -78,6 +68,29 @@ const handleUpdateEvent = (event: EventInfo) => {
     schedules.value[index] = event;
   }
 };
+
+const handleShowInfo = (event: EventInfo) => {
+  selectedEvent.value = event;
+  isPopupVisible.value = true;
+};
+
+const handleUpdatedTodos = ({ todos, eventId }: { todos: string[], eventId: number }) => {
+  const event = schedules.value.find(e => e.id === eventId);
+  if (event) {
+    event.participants = todos;
+    console.log('Teilnehmer nach Löschung:', todos);
+  }
+};
+
+const handleUpdatedParticipants = ({ participants, eventId }: { participants: string[], eventId: number }) => {
+  const event = schedules.value.find(e => e.id === eventId);
+  if (event) {
+    event.participants = participants;
+    console.log('Teilnehmer nach Löschung:', participants);
+  }
+};
+
+
 </script>
 
 <style scoped lang="scss">
@@ -98,7 +111,7 @@ const handleUpdateEvent = (event: EventInfo) => {
   --button-border-radius: 8px;
 }
 
-.wrapper{
+.wrapper {
   padding: 20px;
 }
 </style>
