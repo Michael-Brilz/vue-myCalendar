@@ -1,60 +1,167 @@
 <template>
   <div v-if="visible" class="popup">
-    <div class="popup-content">
-      <!-- Dynamic display of filtered event data -->
+    <div class="popup-content" ref="popupRef" @mousedown="onMouseDown">
+      <!-- Top icon bar -->
+      <div class="top-right-icons">
+        <button class="icon-button" @click="deleteEvent" title="Delete">
+          <font-awesome-icon :icon="['fas', 'trash']" />
+        </button>
+        <button class="icon-button" @click="closePopup" title="Close">
+          <font-awesome-icon :icon="['fas', 'times']" />
+        </button>
+      </div>
+
+      <!-- Title -->
+      <h2 class="popup-title">{{ editableEventData.title }}</h2>
+
       <div v-if="eventData && Object.keys(eventData).length">
-        <div v-for="(value, key) in filteredEventData" :key="key" class="popup-field">
-          <p><strong>{{ formatKey(String(key)) }}:</strong> {{ value }}</p>
+        <template v-for="(value, key) in filteredEventData" :key="key">
+          <div v-if="key !== 'title'" class="popup-field">
+            <label class="popup-label">{{ formatKey(String(key)) }}</label>
+            <input v-model="editableEventData[key]" class="popup-input" :placeholder="formatKey(String(key))" />
+          </div>
+        </template>
+      </div>
+
+      <!-- To-dos -->
+      <div class="section">
+        <label class="popup-label">{{ todosLabel }}</label>
+        <ul class="list">
+          <li v-for="(todo, i) in localTodos" :key="i">
+            {{ todo }}
+            <button @click="removeToDos(i)">
+              <font-awesome-icon :icon="['fas', 'trash']" />
+            </button>
+          </li>
+        </ul>
+        <div class="input-row">
+          <input v-model="newTodo" placeholder="New To-do..." class="popup-input" />
+          <button class="add-inline-button" @click="addTodo">
+            <font-awesome-icon :icon="['fas', 'plus']" />
+          </button>
         </div>
       </div>
-      <slot v-else></slot>
-      <div class="button-container">
-        <button class="close-button" @click="closePopup">
-          {{ closeButtonText }}
-        </button>
-        <button class="delete-button" @click="deleteEvent">
-          Delete
-        </button>
+
+      <!-- Participants -->
+      <div class="section">
+        <label class="popup-label">{{ participantsLabel }}</label>
+        <ul class="list">
+          <li v-for="(p, i) in localParticipants" :key="i">
+            {{ p }}
+            <button @click="removeParticipant(i)">
+              <font-awesome-icon :icon="['fas', 'trash']" />
+            </button>
+          </li>
+        </ul>
+        <div class="input-row">
+          <input v-model="newParticipant" placeholder="Add Participant ..." class="popup-input" />
+          <button class="add-inline-button" @click="addParticipant">
+            <font-awesome-icon :icon="['fas', 'user-plus']" />
+          </button>
+        </div>
+      </div>
+      <!-- Save -->
+      <div class="popup-footer">
+        <button class="save-button" @click="saveChanges">Speichern</button>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, computed } from 'vue';
-import { PopupProps } from '../types/EventInterfaces';
+import { ref, defineProps, defineEmits, computed } from 'vue';
+import { usePopupLogic } from '../composables/usePopupLogic';
+import type { EventInfo, PopupProps } from '../types/EventInterfaces';
 
-const props = defineProps<PopupProps & { popupFields?: string[] }>();
+const props = defineProps<PopupProps & {
+  todosLabel?: string;
+  participantsLabel?: string;
+  visible: boolean;
+  eventData: EventInfo;
+  todos?: string[];
+  participants?: string[];
+  todoPlaceholder?: string;
+  participantPlaceholder?: string;
+}>();
 
-const emit = defineEmits<{ (e: 'close'): void; (e: 'handleDelete', id: number): void }>();
+const todosLabel = computed(() => props.todosLabel || 'To-do');
+const participantsLabel = computed(() => props.participantsLabel || 'Participant');
 
-const popupFields = computed(() => props.popupFields || []);
-const eventData = computed(() => props.eventData || {});
+const emit = defineEmits<{
+  (e: 'submit-event', payload: EventInfo): void;
+  (e: 'handle-delete', payload: number): void;
+  (e: 'update-event', payload: EventInfo): void;
+  (e: 'show-info', payload: EventInfo): void;
+  (e: 'close-popup'): void;
+  (e: 'update:todos', payload: { todos: string[], eventId: number }): void;
+  (e: 'update:participants', payload: { participants: string[], eventId: number }): void;
+}>();
 
-const formatKey = (key: string): string => {
-  return key.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const {
+  editableEventData,
+  filteredEventData,
+  formatKey,
+  localTodos,
+  newTodo,
+  addTodo,
+  localParticipants,
+  newParticipant,
+  addParticipant,
+} = usePopupLogic(props, emit);
+
+const closePopup = () => emit('close-popup');
+const deleteEvent = () => emit('handle-delete', props.eventData.id);
+
+const saveChanges = () => {
+  const updated: EventInfo = {
+    ...editableEventData.value,
+    todos: localTodos.value,
+    participants: localParticipants.value,
+  };
+
+  emit('update-event', updated);
+  emit('update:todos', { todos: localTodos.value, eventId: props.eventData.id });
+  emit('update:participants', { participants: localParticipants.value, eventId: props.eventData.id });
+  emit('close-popup');
 };
 
-const filteredEventData = computed(() => {
-  if (popupFields.value.length === 0) {
-    return eventData.value;
-  }
-  return Object.keys(eventData.value)
-    .filter(key => popupFields.value.includes(key))
-    .reduce((obj, key) => {
-      obj[key] = eventData.value[key];
-      return obj;
-    }, {} as Record<string, any>);
-});
-
-const closePopup = (): void => {
-  emit('close');
+// Drag
+const popupRef = ref<HTMLElement | null>(null);
+const offset = { x: 0, y: 0 };
+const onMouseDown = (e: MouseEvent) => {
+  if (!popupRef.value) return;
+  const el = popupRef.value;
+  offset.x = e.clientX - el.getBoundingClientRect().left;
+  offset.y = e.clientY - el.getBoundingClientRect().top;
+  const onMouseMove = (ev: MouseEvent) => {
+    el.style.left = `${ev.clientX - offset.x}px`;
+    el.style.top = `${ev.clientY - offset.y}px`;
+    el.style.position = 'absolute';
+    el.style.transform = 'none';
+  };
+  const onMouseUp = () => {
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
+  };
+  window.addEventListener('mousemove', onMouseMove);
+  window.addEventListener('mouseup', onMouseUp);
 };
 
-const deleteEvent = () => {
-  emit('handleDelete', eventData.value.id);
+const removeToDos = (index: number) => {
+  localTodos.value.splice(index, 1);
+  emit('update:todos', {
+    todos: [...localTodos.value],
+    eventId: editableEventData.value.id,
+  });
 };
 
+const removeParticipant = (index: number) => {
+  localParticipants.value.splice(index, 1);
+  emit('update:participants', {
+    participants: [...localParticipants.value],
+    eventId: editableEventData.value.id,
+  });
+};
 </script>
 
 <style scoped>
@@ -64,57 +171,134 @@ const deleteEvent = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
 }
 
 .popup-content {
-  background-color: white;
+  background: #fff;
   padding: 1rem;
-  border-radius: 5px;
-  max-width: 400px;
+  border-radius: 6px;
+  max-width: 450px;
   width: 100%;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  user-select: none;
 }
 
-.popup-field {
+.top-right-icons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
-.button-container {
-  margin-top: 1rem;
+.icon-button:hover {
+  color: #646262;
+}
+
+.icon-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem;
+  color: #444;
+}
+
+.popup-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.5rem 0 1rem;
+  color: #222;
+}
+
+.popup-field {
+  margin-bottom: 0.8rem;
+}
+
+.popup-label {
+  margin-bottom: 0.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.popup-input {
+  width: 100%;
+  font-size: 1rem;
+  padding: 0.2rem 0;
+  border: none;
+  border-bottom: 1px solid #ccc;
+  background: transparent;
+  outline: none;
+}
+
+.popup-input:focus {
+  border-bottom-color: #007bff;
+}
+
+.section {
+  margin-top: 1.5rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  margin-bottom: 0.5rem;
+}
+
+.list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.3rem;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.add-inline-button {
+  background: #ffffff;
+  color: #444;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: 0.2s;
+  font-size: 1rem;
+}
+
+.add-inline-button:hover {
+  color: #646262;
+}
+
+.popup-footer {
+  margin-top: 1.5rem;
   text-align: center;
 }
 
-.close-button,
-.delete-button {
-  width: 120px; 
-  background-color: #007bff;
-  color: white;
+.save-button {
+  background: #444;
+  color: #fff;
   border: none;
-  padding: 0.6rem;
-  margin: 0.5rem 15px;
-  cursor: pointer;
-  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
   font-size: 1rem;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.2s;
 }
 
-.close-button:hover,
-.delete-button:hover {
-  background-color: #0056b3;
-  transform: scale(1.05);
-}
-
-.delete-button {
-  background-color: #e53e3e;
-}
-
-.delete-button:hover {
-  background-color: #cc2e2e;
+.save-button:hover {
+  background: #646262;
 }
 </style>

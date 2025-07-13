@@ -52,22 +52,15 @@
             </li>
           </ul>
           <div class="days">
-            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="day"
-                 @dragover.prevent
-                 @drop="onDrop($event, dayIndex)">
+            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="day" @dragover.prevent
+              @drop="onDrop($event, dayIndex)">
               <div v-for="hour in hours" :key="hour" class="hour"></div>
-              <div
-                v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []"
-                :key="event.id"
-                class="event"
-                :style="getEventStyle(event)"
-                draggable="true"
-                @dragstart="onDragStart($event, event)"
-                @dragend="onDragEnd"
-              >
+              <div v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []" :key="event.id"
+                class="event" :style="getEventStyle(event)" draggable="true" @dragstart="onDragStart($event, event)"
+                @dragend="onDragEnd">
                 <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
                 <button class="info-button" @click="showEventInfo(event)">
-                  <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
+                  <img :src="myLogoSrc" alt="info" class="small-logo" />
                 </button>
               </div>
             </div>
@@ -75,16 +68,19 @@
         </div>
       </div>
     </div>
-    <slot name="popup-calendar">
-      <Popup
-        :visible="eventInfoPopup.visible"
-        :eventData="eventInfoPopup.event || {}"
-        :popupFields="popupFields || []"
-        closeButtonText="Close"
-        @close="closeEventInfoPopup"
-        @handleDelete="emitDeleteEvent"
-      />
-    </slot>
+
+    <!-- SLOT FOR CUSTOM POPUP -->
+    <slot name="popup-calendar" v-if="$slots['popup-calendar']"></slot>
+
+    <!-- DEFAULT POPUP -->
+    <Popup v-else :visible="popupVisible" :eventData="popupEvent" :popupFields="popupFields || []"
+      closeButtonText="Close" :todosLabel="labelsAndSettings.todosLabel || 'To-Do'"
+      :participantsLabel="labelsAndSettings.participantsLabel || 'Teammates'" :todos="popupEvent?.todos || []"
+      :participants="popupEvent?.participants || []" :todoPlaceholder="placeholderSettings.todo || 'New To-do...'"
+      :participantPlaceholder="placeholderSettings.participant || 'Add Participant...'"
+      @update:todos="(val) => emit('update:todos', val)"
+      @update:participants="(val) => emit('update:participants', val)" @close-popup="closeEventInfoPopup"
+      @handle-delete="emitDeleteEvent" @update-event="handlePopupUpdate" />
   </div>
 </template>
 
@@ -95,18 +91,32 @@ import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
 
 const props = defineProps<{
-  customClass: string,
-  customStyles?: Record<string, any>,
+  customClass: string;
+  customStyles?: Record<string, any>;
   schedules: EventInfo[];
-  additionalFields: Field[],
-  weekdays?: string[],
-  eventTitleColor?: string,
-  eventTitleSize?: string,
-  popupFields?: string[],
-  labelsAndSettings?: LabelsAndSettings
+  additionalFields: Field[];
+  weekdays?: string[];
+  eventTitleColor?: string;
+  eventTitleSize?: string;
+  popupFields?: string[];
+  labelsAndSettings?: LabelsAndSettings;
+  placeholderSettings?: {
+    todo?: string;
+    participant?: string;
+  };
+  popupVisible: boolean;
+  popupEvent: EventInfo | null;
 }>();
 
-const emit = defineEmits(['submitEvent', 'handleDelete', 'update-event']);
+const emit = defineEmits([
+  'submit-event',
+  'handle-delete',
+  'update-event',
+  'show-info',
+  'close-popup',
+  'update:todos',
+  'update:participants'
+]);
 
 const weekdays = computed(() => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
 const eventTitleColor = computed(() => props.eventTitleColor || '#000');
@@ -117,7 +127,11 @@ const labelsAndSettings = computed(() => ({
   dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
   submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
   calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
+  todosLabel: props.labelsAndSettings?.todosLabel,
+  participantsLabel: props.labelsAndSettings?.participantsLabel,
 }));
+
+const placeholderSettings = computed(() => props.placeholderSettings || {});
 
 const schedules = ref(props.schedules);
 const additionalFields = ref(props.additionalFields);
@@ -125,7 +139,8 @@ const hours = ref(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, 
 
 const events = ref<Record<string, EventInfo[]>>({});
 const newEvent = ref<Partial<EventInfo>>({ start: '', end: '', date: '', color: '' });
-const eventInfoPopup = ref<{ visible: boolean; event: EventInfo | {} }>({ visible: false, event: {} });
+const popupVisible = computed(() => props.popupVisible);
+const popupEvent = computed(() => props.popupEvent);
 const currentWeekOffset = ref(0);
 const draggedEvent = ref<EventInfo | null>(null);
 
@@ -140,10 +155,14 @@ const addEvent = () => {
   props.additionalFields.forEach((field) => {
     event[field.model] = newEvent.value[field.model];
   });
-  emit('submitEvent', event as EventInfo);
+  emit('submit-event', event as EventInfo);
   Object.keys(newEvent.value).forEach((key) => {
     newEvent.value[key as keyof EventInfo] = '';
   });
+};
+
+const handlePopupUpdate = (updated: EventInfo) => {
+  emit('update-event', updated);
 };
 
 const loadEvents = () => {
@@ -218,7 +237,7 @@ const onDrop = (e: DragEvent, dayIndex: number) => {
   if (!draggedEvent.value) return;
   const target = e.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
-  const dropY = e.clientY - rect.top;   
+  const dropY = e.clientY - rect.top;
   const minutesPerPixel = 60 / 40;
   const newStartMinutes = Math.round(dropY * minutesPerPixel / 15) * 15;
   const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
@@ -242,15 +261,14 @@ const onDrop = (e: DragEvent, dayIndex: number) => {
 };
 
 const showEventInfo = (event: EventInfo) => {
-  eventInfoPopup.value.event = event;
-  eventInfoPopup.value.visible = true;
+  emit('show-info', event);
 };
 
 const closeEventInfoPopup = () => {
-  eventInfoPopup.value.visible = false;
+  emit('close-popup');
 };
 
-const emitDeleteEvent = (eventId: number) => emit('handleDelete', eventId);
+const emitDeleteEvent = (eventId: number) => emit('handle-delete', eventId);
 
 onMounted(() => {
   props.additionalFields.forEach(field => {
@@ -258,227 +276,226 @@ onMounted(() => {
   });
 });
 </script>
-  
+
 <style>
-  .small-logo {
-    width: 20px;
-    height: 20px;
-  }
+.small-logo {
+  width: 20px;
+  height: 20px;
+}
 
-  .form-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--form-gap, 1rem);
-    background-color: var(--form-bg-color);
-    padding: var(--form-padding);
-    border-radius: var(--form-border-radius);
-    border: var(--form-border);
-    margin-bottom: 20px;
-  }
+.form-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--form-gap, 1rem);
+  background-color: var(--form-bg-color);
+  padding: var(--form-padding);
+  border-radius: var(--form-border-radius);
+  border: var(--form-border);
+  margin-bottom: 20px;
+}
 
-  .form-group {
-    flex: 1;
-    min-width: 200px;
-    margin-bottom: 10px;
-  }
+.form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 10px;
+}
 
-  .form-label {
-    display: block;
-    color: var(--label-color);
-    font-weight: var(--label-font-weight);
-    margin-bottom: 4px;
-  }
+.form-label {
+  display: block;
+  color: var(--label-color);
+  font-weight: var(--label-font-weight);
+  margin-bottom: 4px;
+}
 
-  .form-input,
-  .form-select {
-    width: 100%;
-    height: var(--input-height, 40px);
-    padding: var(--input-padding);
-    font-size: var(--input-font-size);
-    border: var(--input-border);
-    border-radius: var(--input-border-radius);
-    box-sizing: border-box;
-    appearance: none;
-  }
+.form-input,
+.form-select {
+  width: 100%;
+  height: var(--input-height, 40px);
+  padding: var(--input-padding);
+  font-size: var(--input-font-size);
+  border: var(--input-border);
+  border-radius: var(--input-border-radius);
+  box-sizing: border-box;
+  appearance: none;
+}
 
-  .submit-button {
-    background-color: var(--button-bg-color);
-    color: var(--button-color);
-    padding: var(--button-padding);
-    border-radius: var(--button-border-radius);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-size: 1rem;
-  }
+.submit-button {
+  background-color: var(--button-bg-color);
+  color: var(--button-color);
+  padding: var(--button-padding);
+  border-radius: var(--button-border-radius);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  font-size: 1rem;
+}
 
-  .submit-button:hover {
-    background-color: var(--button-hover-bg-color);
-  }
+.submit-button:hover {
+  background-color: var(--button-hover-bg-color);
+}
 
-  .weekdays {
-    list-style-type: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    border-bottom: 1px solid #ccc;
-    margin: 0;
-    height: 40px;
-  }
+.weekdays {
+  list-style-type: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-bottom: 1px solid #ccc;
+  margin: 0;
+  height: 40px;
+}
 
-  .weekday {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    text-align: center;
-    margin-bottom: 13px;
-  }
+.weekday {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  margin-bottom: 13px;
+}
 
-  .calendar {
-    display: flex;
-    flex-direction: column;
-  }
+.calendar {
+  display: flex;
+  flex-direction: column;
+}
 
-  .hours-and-days {
-    display: flex;
-    align-items: stretch;
-  }
+.hours-and-days {
+  display: flex;
+  align-items: stretch;
+}
 
-  .hours {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-    width: 50px;
-    height: 100%;
-  }
+.hours {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 50px;
+  height: 100%;
+}
 
-  .hours .hour {
-    min-height: 40px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    flex-grow: 1;
-  }
+.hours .hour {
+  min-height: 40px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
 
-  .weekdays-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
+.weekdays-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
 
-  .days {
-    display: flex;
-    flex-grow: 1;
-  }
+.days {
+  display: flex;
+  flex-grow: 1;
+}
 
-  .day {
-    flex: 1;
-    border-left: 1px solid #ccc;
-    position: relative;
-  }
+.day {
+  flex: 1;
+  border-left: 1px solid #ccc;
+  position: relative;
+}
 
-  .day .hour {
-    min-height: 40px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    flex-grow: 1;
-  }
+.day .hour {
+  min-height: 40px;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
 
-  .event {
-    background-color: #a4d8ff;
-    padding: 2px;
-    font-size: 12px;
-    border-radius: 8px;
-    width: 95%;
-    box-sizing: border-box;
-    position: absolute;
-  }
+.event {
+  background-color: #a4d8ff;
+  padding: 2px;
+  font-size: 12px;
+  border-radius: 8px;
+  width: 95%;
+  box-sizing: border-box;
+  position: absolute;
+}
 
-  .remove-button {
-    background-color: #e53e3e;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 1rem;
-  }
+.remove-button {
+  background-color: #e53e3e;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
 
-  .empty-slot {
-    height: 40px;
-  }
+.empty-slot {
+  height: 40px;
+}
 
-  .navigation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
+.navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
 
-  .arrow-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 0 1rem;
-  }
+.arrow-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 1rem;
+}
 
-  .current-week {
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
+.current-week {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
 
-  .info-button {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background-color: transparent;
-    border: none;
-    color: blue;
-    font-weight: bold;
-    cursor: pointer;
-  }
+.info-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: transparent;
+  border: none;
+  color: blue;
+  font-weight: bold;
+  cursor: pointer;
+}
 
-  .popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 
-  .popup-content {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    max-width: 400px;
-    width: 100%;
-  }
+.popup-content {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 5px;
+  max-width: 400px;
+  width: 100%;
+}
 
-  .close-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 1rem;
-  }
+.close-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
 </style>
-  
