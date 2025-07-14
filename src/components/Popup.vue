@@ -57,7 +57,7 @@ const deleteEvent = () => {
 
 </script>
 
-<style scoped>
+<style>
 .popup {
   position: fixed;
   top: 0;
