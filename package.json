@@ -21,7 +21,8 @@
   },
   "types": "dist/main.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "src/styles/theme.css"
   ],
   "scripts": {
     "dev": "vite",
