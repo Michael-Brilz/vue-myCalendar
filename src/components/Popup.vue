@@ -164,7 +164,7 @@ const removeParticipant = (index: number) => {
 };
 </script>
 
-<style scoped>
+<style>
 .popup {
   position: fixed;
   top: 0;
