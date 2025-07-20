@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper">
+  <div class="dark">
     <ScheduleForm :schedules="schedules" :additional-fields="additionalFields" custom-class="customize-schedule-form"
       :labels-and-settings="labelsAndSettings" :popup-fields="popupFields" :popup-visible="isPopupVisible"
       :popup-event="selectedEvent" @update:todos="handleUpdatedTodos" @update:participants="handleUpdatedParticipants"

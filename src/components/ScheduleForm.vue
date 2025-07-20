@@ -278,6 +278,39 @@ onMounted(() => {
 </script>
 
 <style>
+:root {
+  /* Optional: Defaultwerte, falls der Nutzer keine eigenen definiert */
+  --form-bg-color: #ffffff;
+  --form-padding: 1rem;
+  --form-border-radius: 8px;
+  --form-border: 1px solid #ccc;
+
+  --label-color: #333;
+  --label-font-weight: bold;
+
+  --input-height: 40px;
+  --input-padding: 0.5rem;
+  --input-font-size: 1rem;
+  --input-border: 1px solid #ccc;
+  --input-border-radius: 6px;
+
+  --button-bg-color: #007bff;
+  --button-hover-bg-color: #0056b3;
+  --button-color: #fff;
+  --button-padding: 0.6rem 1rem;
+
+  --calendar-primary-color: #a4d8ff;
+  --event-border-radius: 8px;
+
+  --arrow-button-bg: #007bff;
+  --arrow-button-color: #fff;
+  --current-week-color: #000;
+
+  --popup-bg: #ffffff;
+  --popup-overlay-bg: rgba(0, 0, 0, 0.5);
+  --popup-border-radius: 5px;
+}
+
 .small-logo {
   width: 20px;
   height: 20px;
@@ -310,7 +343,7 @@ onMounted(() => {
 .form-input,
 .form-select {
   width: 100%;
-  height: var(--input-height, 40px);
+  height: var(--input-height);
   padding: var(--input-padding);
   font-size: var(--input-font-size);
   border: var(--input-border);
@@ -323,7 +356,7 @@ onMounted(() => {
   background-color: var(--button-bg-color);
   color: var(--button-color);
   padding: var(--button-padding);
-  border-radius: var(--button-border-radius);
+  border-radius: var(--button-border-radius, 6px);
   border: none;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -412,13 +445,18 @@ onMounted(() => {
 }
 
 .event {
-  background-color: #a4d8ff;
+  background-color: var(--calendar-primary-color);
   padding: 2px;
   font-size: 12px;
-  border-radius: 8px;
+  border-radius: var(--event-border-radius);
   width: 95%;
   box-sizing: border-box;
   position: absolute;
+}
+
+.event span {
+  color: var(--event-title-color, #000);
+  font-size: var(--event-title-size, 16px);
 }
 
 .remove-button {
@@ -443,8 +481,8 @@ onMounted(() => {
 }
 
 .arrow-button {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--arrow-button-bg);
+  color: var(--arrow-button-color);
   border: none;
   padding: 0.5rem 1rem;
   cursor: pointer;
@@ -455,6 +493,7 @@ onMounted(() => {
 .current-week {
   font-size: 1.2rem;
   font-weight: bold;
+  color: var(--current-week-color);
 }
 
 .info-button {
@@ -474,7 +513,7 @@ onMounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--popup-overlay-bg);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -482,16 +521,16 @@ onMounted(() => {
 }
 
 .popup-content {
-  background-color: white;
+  background-color: var(--popup-bg);
   padding: 1rem;
-  border-radius: 5px;
+  border-radius: var(--popup-border-radius);
   max-width: 400px;
   width: 100%;
 }
 
 .close-button {
-  background-color: #007bff;
-  color: white;
+  background-color: var(--button-bg-color);
+  color: var(--button-color);
   border: none;
   padding: 0.5rem 1rem;
   cursor: pointer;

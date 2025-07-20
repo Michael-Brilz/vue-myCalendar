@@ -1,0 +1,167 @@
+/* ============================================
+   🌞 Light Theme (Default)
+   ============================================ */
+body {
+  background-color: var(--body-bg-color, #ffffff);
+  color: var(--body-text-color, #000);
+}
+
+:root {
+  --body-bg-color: #ffffff;
+  --body-text-color: #000;
+
+  --form-bg-color: #ffffff;
+  --form-padding: 1rem;
+  --form-border-radius: 8px;
+  --form-border: 1px solid #ccc;
+
+  --label-color: #333;
+  --label-font-weight: bold;
+
+  --input-height: 40px;
+  --input-padding: 0.5rem;
+  --input-font-size: 1rem;
+  --input-border: 1px solid #ccc;
+  --input-border-radius: 6px;
+  --input-bg-color: #ffffff;
+  --input-color: #000;
+
+  --button-bg-color: #007bff;
+  --button-hover-bg-color: #0056b3;
+  --button-color: #fff;
+  --button-padding: 0.6rem 1rem;
+  --button-border-radius: 6px;
+
+  --calendar-bg-color: #ffffff;
+  --calendar-primary-color: #a4d8ff;
+  --calendar-border-color: #ccc;
+  --calendar-border-radius: 8px;
+
+  --weekday-bg-color: #f8f9fa;
+  --weekday-text-color: #333;
+  --weekday-border-color: #ccc;
+
+  --hour-cell-bg-color: #ffffff;
+  --hour-cell-border-color: #ccc;
+  --hour-text-color: #666;
+
+  --event-bg-color: #a4d8ff;
+  --event-text-color: #000;
+  --event-font-size: 14px;
+  --event-border-radius: 8px;
+  --event-padding: 4px;
+
+  --nav-bg-color: transparent;
+  --nav-text-color: #000;
+  --arrow-button-bg: #007bff;
+  --arrow-button-color: #fff;
+  --arrow-button-border-radius: 5px;
+
+  --current-week-text-color: #000;
+  --current-week-font-weight: bold;
+
+  --popup-bg-color: #ffffff;
+  --popup-overlay-bg: rgba(0, 0, 0, 0.5);
+  --popup-border-radius: 5px;
+  --popup-padding: 1rem;
+  --popup-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  --remove-button-bg: #e53e3e;
+  --remove-button-text-color: #fff;
+
+  --close-button-bg: var(--button-bg-color);
+  --close-button-text-color: var(--button-color);
+
+  --info-button-color: blue;
+  --info-button-size: 20px;
+}
+
+/* ============================================
+   🌙 Dark Theme (automatisch via System)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --body-bg-color: #1e1e2f;
+    --body-text-color: #e0e6f0;
+
+    --form-bg-color: #2a2b3c;
+    --form-border: 1px solid #3d3f5c;
+    --label-color: #c0c6dc;
+
+    --input-bg-color: #2f3144;
+    --input-border: 1px solid #4a4e69;
+    --input-color: #e0e6f0;
+
+    --button-bg-color: #4e97d8;
+    --button-hover-bg-color: #377ec4;
+    --button-color: #ffffff;
+
+    --calendar-bg-color: #252636;
+    --calendar-border-color: #3c3f54;
+
+    --weekday-bg-color: #2f3144;
+    --weekday-text-color: #c8d0e0;
+
+    --hour-cell-bg-color: #2f3144;
+    --hour-text-color: #aab3c5;
+
+    --event-bg-color: #5f6ec7;
+    --event-text-color: #ffffff;
+
+    --popup-bg-color: #2d2e40;
+    --popup-overlay-bg: rgba(0, 0, 0, 0.75);
+
+    --current-week-text-color: #f5f7fa;
+    --arrow-button-bg: #4e97d8;
+    --arrow-button-color: #ffffff;
+
+    --remove-button-bg: #e5484d;
+    --remove-button-text-color: #ffffff;
+
+    --info-button-color: #79b8ff;
+  }
+}
+
+/* ============================================
+   🌚 Dark Theme (manuell via Klasse .dark)
+   ============================================ */
+:root.dark {
+  --body-bg-color: #1e1e2f;
+  --body-text-color: #e0e6f0;
+
+  --form-bg-color: #2a2b3c;
+  --form-border: 1px solid #3d3f5c;
+  --label-color: #c0c6dc;
+
+  --input-bg-color: #2f3144;
+  --input-border: 1px solid #4a4e69;
+  --input-color: #e0e6f0;
+
+  --button-bg-color: #4e97d8;
+  --button-hover-bg-color: #377ec4;
+  --button-color: #ffffff;
+
+  --calendar-bg-color: #252636;
+  --calendar-border-color: #3c3f54;
+
+  --weekday-bg-color: #2f3144;
+  --weekday-text-color: #c8d0e0;
+
+  --hour-cell-bg-color: #2f3144;
+  --hour-text-color: #aab3c5;
+
+  --event-bg-color: #5f6ec7;
+  --event-text-color: #ffffff;
+
+  --popup-bg-color: #2d2e40;
+  --popup-overlay-bg: rgba(0, 0, 0, 0.75);
+
+  --current-week-text-color: #f5f7fa;
+  --arrow-button-bg: #4e97d8;
+  --arrow-button-color: #ffffff;
+
+  --remove-button-bg: #e5484d;
+  --remove-button-text-color: #ffffff;
+
+  --info-button-color: #79b8ff;
+}
