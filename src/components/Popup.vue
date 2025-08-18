@@ -171,14 +171,15 @@ const removeParticipant = (index: number) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--popup-overlay-bg, rgba(0, 0, 0, 0.5));
   z-index: 1000;
 }
 
 .popup-content {
-  background: #fff;
+  background: var(--popup-bg, #fff);
+  color: var(--body-text-color, #222);
   padding: 1rem;
-  border-radius: 6px;
+  border-radius: var(--popup-border-radius, 6px);
   max-width: 450px;
   width: 100%;
   position: absolute;
@@ -186,6 +187,7 @@ const removeParticipant = (index: number) => {
   top: 50%;
   transform: translate(-50%, -50%);
   user-select: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .top-right-icons {
@@ -195,24 +197,25 @@ const removeParticipant = (index: number) => {
   margin-bottom: 0.5rem;
 }
 
-.icon-button:hover {
-  color: #646262;
-}
-
 .icon-button {
   background: none;
   border: none;
   font-size: 1.2rem;
   cursor: pointer;
   padding: 0.2rem;
-  color: #444;
+  color: var(--icon-color, #444);
+  transition: color 0.2s;
+}
+
+.icon-button:hover {
+  color: var(--icon-hover-color, #646262);
 }
 
 .popup-title {
   font-size: 1.5rem;
   font-weight: 600;
   margin: 0.5rem 0 1rem;
-  color: #222;
+  color: var(--button-bg-color, #222);
 }
 
 .popup-field {
@@ -222,7 +225,7 @@ const removeParticipant = (index: number) => {
 .popup-label {
   margin-bottom: 0.2rem;
   font-weight: 600;
-  color: #333;
+  color: var(--button-bg-color, #333);
 }
 
 .popup-input {
@@ -230,13 +233,14 @@ const removeParticipant = (index: number) => {
   font-size: 1rem;
   padding: 0.2rem 0;
   border: none;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--grid-border-color, #ccc);
   background: transparent;
   outline: none;
+  color: var(--body-text-color, #222);
 }
 
 .popup-input:focus {
-  border-bottom-color: #007bff;
+  border-bottom-color: var(--button-bg-color, #007bff);
 }
 
 .section {
@@ -263,8 +267,8 @@ const removeParticipant = (index: number) => {
 }
 
 .add-inline-button {
-  background: #ffffff;
-  color: #444;
+  background: var(--button-inline-bg, #ffffff);
+  color: var(--button-inline-color, #444);
   width: 2.2rem;
   height: 2.2rem;
   border: none;
@@ -279,7 +283,7 @@ const removeParticipant = (index: number) => {
 }
 
 .add-inline-button:hover {
-  color: #646262;
+  color: var(--button-inline-hover-color, #646262);
 }
 
 .popup-footer {
@@ -288,17 +292,17 @@ const removeParticipant = (index: number) => {
 }
 
 .save-button {
-  background: #444;
-  color: #fff;
+  background: var(--button-bg-color, #444);
+  color: var(--button-color, #fff);
   border: none;
   padding: 0.6rem 1.2rem;
   font-size: 1rem;
-  border-radius: 6px;
+  border-radius: var(--button-border-radius, 6px);
   cursor: pointer;
   transition: 0.2s;
 }
 
 .save-button:hover {
-  background: #646262;
+  background: var(--button-hover-bg-color, #646262);
 }
 </style>
