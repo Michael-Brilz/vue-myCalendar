@@ -1,25 +1,175 @@
+/* ============================================
+   Light Theme (Default)
+   ============================================ */
+body {
+    background-color: var(--body-bg-color, #ffffff);
+    color: var(--body-text-color, #000);
+}
+
 :root {
-  /* Form */
-  --form-bg-color: #ffffff;
-  --form-padding: 1rem;
-  --form-border-radius: 6px;
-  --form-border: 1px solid #ccc;
+    --body-bg-color: #ffffff;
+    --body-text-color: #000;
 
-  /* Label */
-  --label-color: #333;
-  --label-font-weight: 600;
+    --form-bg-color: #ffffff;
+    --form-padding: 1rem;
+    --form-border-radius: 8px;
+    --form-border: 1px solid #ccc;
 
-  /* Input */
-  --input-height: 40px;
-  --input-padding: 0.5rem;
-  --input-font-size: 1rem;
-  --input-border: 1px solid #ccc;
-  --input-border-radius: 4px;
+    --label-color: #333;
+    --label-font-weight: bold;
 
-  /* Button */
-  --button-bg-color: #007bff;
-  --button-hover-bg-color: #0056b3;
-  --button-color: #fff;
-  --button-padding: 0.5rem 1rem;
-  --button-border-radius: 4px;
+    --input-height: 40px;
+    --input-padding: 0.5rem;
+    --input-font-size: 1rem;
+    --input-border: 1px solid #ccc;
+    --input-border-radius: 6px;
+    --input-bg-color: #ffffff;
+    --input-color: #000;
+
+    --button-bg-color: #007bff;
+    --button-hover-bg-color: #0056b3;
+    --button-color: #fff;
+    --button-padding: 0.6rem 1rem;
+    --button-border-radius: 6px;
+
+    --calendar-bg-color: #ffffff;
+    --calendar-primary-color: #a4d8ff;
+    --calendar-border-color: #ccc;
+    --calendar-border-radius: 8px;
+
+    --weekday-bg-color: #f8f9fa;
+    --weekday-text-color: #333;
+    --weekday-border-color: #ccc;
+
+    --hour-cell-bg-color: #ffffff;
+    --hour-cell-border-color: #ccc;
+    --hour-text-color: #666;
+
+    --event-bg-color: #a4d8ff;
+    --event-text-color: #000;
+    --event-font-size: 14px;
+    --event-border-radius: 8px;
+    --event-padding: 4px;
+
+    --nav-bg-color: transparent;
+    --nav-text-color: #000;
+    --arrow-button-bg: #007bff;
+    --arrow-button-color: #fff;
+    --arrow-button-border-radius: 5px;
+
+    --current-week-text-color: #000;
+    --current-week-font-weight: bold;
+
+    --popup-bg-color: #ffffff;
+    --popup-overlay-bg: rgba(0, 0, 0, 0.5);
+    --popup-border-radius: 5px;
+    --popup-padding: 1rem;
+    --popup-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+    --remove-button-bg: #e53e3e;
+    --remove-button-text-color: #fff;
+
+    --close-button-bg: var(--button-bg-color);
+    --close-button-text-color: var(--button-color);
+
+    --info-button-color: blue;
+    --info-button-size: 20px;
+}
+
+/* ============================================
+   Dark Theme (System)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+        --body-bg-color: #121212;
+        --body-text-color: #ffffff;
+
+        --form-bg-color: #1c1c1c;
+        --form-border: 1px solid rgba(255, 255, 255, 0.1);
+        --label-color: #fff;
+
+        --input-bg-color: #1e1e1e;
+        --input-border: 1px solid rgba(255, 255, 255, 0.15);
+        --input-color: #ffffff;
+
+        --button-bg-color: #D2F7D8;
+        --button-hover-bg-color: #b2e7c0;
+        --button-color: #121212;
+
+        --calendar-bg-color: #1a1a1a;
+        --calendar-border-color: rgba(255, 255, 255, 0.1);
+
+        --weekday-bg-color: #1e1e1e;
+        --weekday-text-color: #D2F7D8;
+
+        --hour-cell-bg-color: #1e1e1e;
+        --hour-text-color: #cccccc;
+
+        --event-bg-color: #D2F7D8;
+        --event-text-color: #121212;
+        --event-border-radius: 10px;
+
+        --popup-bg-color: rgba(18, 18, 18, 0.95);
+        --popup-overlay-bg: rgba(0, 0, 0, 0.7);
+        --popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+        --current-week-text-color: #ffffff;
+        --current-week-font-weight: 600;
+
+        --arrow-button-bg: #D2F7D8;
+        --arrow-button-color: #121212;
+        --arrow-button-border-radius: 8px;
+
+        --remove-button-bg: #e5484d;
+        --remove-button-text-color: #ffffff;
+
+        --info-button-color: #D2F7D8;
+    }
+}
+
+/* ============================================
+   Dark Theme
+   ============================================ */
+:root.dark {
+    --body-bg-color: #121212;
+    --body-text-color: #ffffff;
+
+    --form-bg-color: #1c1c1c;
+    --form-border: 1px solid rgba(255, 255, 255, 0.1);
+    --label-color: #ffffff;
+
+    --input-bg-color: #1e1e1e;
+    --input-border: 1px solid rgba(255, 255, 255, 0.15);
+    --input-color: #ffffff;
+
+    --button-bg-color: #D2F7D8;
+    --button-hover-bg-color: #b2e7c0;
+    --button-color: #121212;
+
+    --calendar-bg-color: #1a1a1a;
+    --calendar-border-color: rgba(255, 255, 255, 0.1);
+
+    --weekday-bg-color: #1e1e1e;
+    --weekday-text-color: #ffffff;
+
+    --hour-cell-bg-color: #1e1e1e;
+    --hour-text-color: #cccccc;
+
+    --event-bg-color: #D2F7D8;
+    --event-text-color: #121212;
+
+    --popup-bg-color: rgba(18, 18, 18, 0.95);
+    --popup-overlay-bg: rgba(0, 0, 0, 0.7);
+    --popup-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+    --current-week-text-color: #ffffff;
+    --current-week-font-weight: 600;
+
+    --arrow-button-bg: #D2F7D8;
+    --arrow-button-color: #121212;
+
+    --remove-button-bg: #e5484d;
+    --remove-button-text-color: #ffffff;
+
+    --info-button-color: #D2F7D8;
 }
