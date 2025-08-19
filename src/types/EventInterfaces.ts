@@ -14,6 +14,8 @@
     dateLabel?: string;
     submitButtonText?: string;
     calendarWeekLabel?: string;
+    todosLabel?: string;
+    participantsLabel?: string;
   }
   
   export interface PopupProps {
@@ -33,5 +35,7 @@
   info?: string;
   teacher?: string;
   room?: string;
+  todos?: string[];
+  participants?: string[];
   [key: string]: any;
 }

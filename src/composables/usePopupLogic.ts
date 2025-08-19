@@ -1,8 +1,34 @@
-import { ref, computed, watch } from 'vue';
-import { PopupProps } from '../types/EventInterfaces';
+import { ref, computed, watch, type Ref, type ComputedRef  } from 'vue';
+import { EventInfo, PopupProps } from '@/types/EventInterfaces';
+
+type PopupLogicProps = Omit<PopupProps, 'eventData'> & {
+    eventData: EventInfo;
+    popupFields?: string[];
+};
+
+interface PopupLogicReturn {
+    editableEventData: Ref<EventInfo>;
+    popupFields: ComputedRef<string[]>;
+    filteredEventData: ComputedRef<Record<string, unknown>>;
+    formatKey: (key: string) => string;
+    updateField: (key: string, value: unknown) => void;
+
+    // Todos
+    localTodos: Ref<string[]>;
+    newTodo: Ref<string>;
+    addTodo: () => void;
+    removeTodo: (index: number) => void;
+
+    // Participants
+    localParticipants: Ref<string[]>;
+    newParticipant: Ref<string>;
+    addParticipant: () => void;
+    removeParticipant: (index: number) => void;
+}
 
 export function usePopupLogic(
   props: PopupProps & {
+    eventData: EventInfo;
     popupFields?: string[];
   },
   emit: any

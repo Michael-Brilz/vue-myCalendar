@@ -7,7 +7,7 @@
           class="toggle-btn"
           :class="{ active: !isDark }"
           @click="setLight"
-          aria-pressed="!isDark"
+          :aria-pressed="!isDark"
       >
         Light
       </button>
@@ -16,7 +16,7 @@
           class="toggle-btn"
           :class="{ active: isDark }"
           @click="setDark"
-          aria-pressed="isDark"
+          :aria-pressed="isDark"
       >
         Dark
       </button>
