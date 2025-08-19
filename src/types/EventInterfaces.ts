@@ -8,16 +8,14 @@
     options?: { [key: string]: any };
   }
   
-  export interface EventInfo {
-    [key: string]: any;
-  }
-  
   export interface LabelsAndSettings {
     startTimeLabel?: string;
     endTimeLabel?: string;
     dateLabel?: string;
     submitButtonText?: string;
     calendarWeekLabel?: string;
+    todosLabel?: string;
+    participantsLabel?: string;
   }
   
   export interface PopupProps {
@@ -26,3 +24,18 @@
     eventData?: { [key: string]: any };
     popupFields: string[];
   }
+
+  export interface EventInfo {
+  id: number;
+  title: string;
+  start: string;
+  end: string;
+  date: string;
+  color?: string;
+  info?: string;
+  teacher?: string;
+  room?: string;
+  todos?: string[];
+  participants?: string[];
+  [key: string]: any;
+}

@@ -1,1 +1,18 @@
-src/App.vue
+# Quellcode, der nicht gebraucht wird
+src/
+public/
+tests/
+.vscode/
+node_modules/
+
+# App-spezifische Dateien
+main.ts
+App.vue
+vite.config.ts
+tsconfig.json
+
+# Entwicklungskram
+*.log
+*.md~
+yarn.lock
+.env

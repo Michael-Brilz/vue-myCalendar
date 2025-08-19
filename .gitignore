@@ -17,6 +17,11 @@ pnpm-debug.log*
 .idea/
 *.sublime-project
 *.sublime-workspace
+dist/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
 
 # MacOS system files
 .DS_Store

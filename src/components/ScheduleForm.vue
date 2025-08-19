@@ -1,9 +1,9 @@
 <template>
-  <div :class="customClass" :style="customStyles">
+  <div :class="['calendar-theme', customClass, { dark: isDark }]" :style="customStyles">
     <form class="form-container" @submit.prevent="addEvent">
-      <!-- Dynamic fields-->
       <div v-for="field in additionalFields" :key="field.id" class="form-group">
         <label :for="field.id" class="form-label">{{ field.label }}:</label>
+
         <div v-if="field.type === 'select'">
           <select :id="field.id" v-model="newEvent[field.model]" required class="form-select">
             <option v-for="option in field.options" :key="option.id" :value="option">
@@ -11,43 +11,45 @@
             </option>
           </select>
         </div>
+
         <div v-else>
-          <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input"/>
+          <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input" />
         </div>
       </div>
 
-      <!-- Fixed fields -->
       <div class="form-group">
-        <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel || 'Start Time' }}:</label>
+        <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel }}:</label>
         <input id="start" v-model="newEvent.start" type="time" required class="form-input" />
       </div>
+
       <div class="form-group">
-        <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel || 'End Time' }}:</label>
+        <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel }}:</label>
         <input id="end" v-model="newEvent.end" type="time" required class="form-input" />
       </div>
+
       <div class="form-group">
-        <label for="date" class="form-label">{{ labelsAndSettings.dateLabel || 'Date' }}:</label>
+        <label for="date" class="form-label">{{ labelsAndSettings.dateLabel }}:</label>
         <input id="date" v-model="newEvent.date" type="date" required class="form-input" />
       </div>
 
-      <button type="submit" :disabled="Boolean(events.processing)" class="submit-button">
-        {{ labelsAndSettings.submitButtonText || 'Add Entry' }}
+      <button type="submit" class="submit-button">
+        {{ labelsAndSettings.submitButtonText }}
       </button>
     </form>
 
     <div class="calendar">
       <div class="navigation">
         <button class="arrow-button" @click="prevWeek">&lt;</button>
-        <span class="current-week">{{ labelsAndSettings.calendarWeekLabel || 'CW' }} {{ getCurrentWeekNumber() }}</span>
+        <span class="current-week">{{ labelsAndSettings.calendarWeekLabel }} {{ getCurrentWeekNumber() }}</span>
         <button class="arrow-button" @click="nextWeek">&gt;</button>
       </div>
+
       <div class="hours-and-days">
         <div class="hours">
           <div class="empty-slot"></div>
-          <div v-for="hour in hours" :key="hour" class="hour">
-            {{ hour }}
-          </div>
+          <div v-for="hour in hours" :key="hour" class="hour">{{ hour }}</div>
         </div>
+
         <div class="weekdays-container">
           <ul class="weekdays">
             <li v-for="(day, index) in weekdays" :key="index" class="weekday">
@@ -55,15 +57,30 @@
               <span>{{ getDateForWeekday(index) }}</span>
             </li>
           </ul>
+
           <div class="days">
-            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="day">
+            <div
+                v-for="(day, dayIndex) in 7"
+                :key="dayIndex"
+                class="day"
+                @dragover.prevent
+                @drop="onDrop($event, dayIndex)"
+            >
               <div v-for="hour in hours" :key="hour" class="hour"></div>
-              <div v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []" 
-                   :key="event.id" class="event" :style="getEventStyle(event)">
-                   <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
-                   <button class="info-button" @click="showEventInfo(event)">
-                      <img :src="myLogoSrc" alt="my-logo" class="small-logo" />
-                   </button>
+
+              <div
+                  v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []"
+                  :key="event.id"
+                  class="event"
+                  :style="getEventStyle(event)"
+                  draggable="true"
+                  @dragstart="onDragStart($event, event)"
+                  @dragend="onDragEnd"
+              >
+                <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
+                <button class="info-button" @click="showEventInfo(event)">
+                  <img :src="myLogoSrc" alt="info" class="small-logo" />
+                </button>
               </div>
             </div>
           </div>
@@ -71,400 +88,579 @@
       </div>
     </div>
 
-<Popup
-  :visible="eventInfoPopup.visible"
-  :eventData="eventInfoPopup.event"
-  :popupFields="popupFields"
-  closeButtonText="Close"
-  @close="closeEventInfoPopup"
-  @handleDelete="emitDeleteEvent"
-/>
+    <!-- SLOT FOR CUSTOM POPUP -->
+    <slot name="popup-calendar" v-if="$slots['popup-calendar']"></slot>
+
+    <!-- DEFAULT POPUP -->
+    <Popup
+        v-else
+        :visible="popupVisible"
+        :eventData="popupEvent"
+        :popupFields="popupFields || []"
+        closeButtonText="Close"
+        :todosLabel="labelsAndSettings.todosLabel || 'To-Do'"
+        :participantsLabel="labelsAndSettings.participantsLabel || 'Teammates'"
+        :todos="popupEvent?.todos || []"
+        :participants="popupEvent?.participants || []"
+        :todoPlaceholder="placeholderSettings.todo || 'New To-do...'"
+        :participantPlaceholder="placeholderSettings.participant || 'Add Participant...'"
+        @update:todos="(val) => emit('update:todos', val)"
+        @update:participants="(val) => emit('update:participants', val)"
+        @close-popup="closeEventInfoPopup"
+        @handle-delete="emitDeleteEvent"
+        @update-event="handlePopupUpdate"
+    />
   </div>
 </template>
 
-
-<script lang="ts" setup>
+<script setup lang="ts">
 import { ref, computed, watchEffect, onMounted } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
-import { Field, EventInfo, LabelsAndSettings } from '../types/EventInterfaces';
+import { Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
 
 const props = defineProps<{
-customClass: string,
-customStyles?: Record<string, any>,
-schedules: EventInfo[];
-additionalFields: Field[],
-weekdays?: string[],
-eventTitleColor?: string,
-eventTitleSize?: string
-popupFields?: string[],
-labelsAndSettings?: LabelsAndSettings;
+  customClass: string;
+  customStyles?: Record<string, any>;
+  schedules: EventInfo[];
+  additionalFields: Field[];
+  weekdays?: string[];
+  eventTitleColor?: string;
+  eventTitleSize?: string;
+  popupFields?: string[];
+  labelsAndSettings?: LabelsAndSettings;
+  placeholderSettings?: {
+    todo?: string;
+    participant?: string;
+  };
+  popupVisible: boolean;
+  popupEvent: EventInfo | null;
 }>();
 
-const emit = defineEmits(['submitEvent', 'handleDelete']);
+const emit = defineEmits([
+  'submit-event',
+  'handle-delete',
+  'update-event',
+  'show-info',
+  'close-popup',
+  'update:todos',
+  'update:participants'
+]);
 
-const weekdays = computed(() => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']);
+const isDark = ref(false);
+
+const weekdays = computed(
+    () => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+);
 const eventTitleColor = computed(() => props.eventTitleColor || '#000');
 const eventTitleSize = computed(() => props.eventTitleSize || '16px');
 const labelsAndSettings = computed(() => ({
-startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
-endTimeLabel: props.labelsAndSettings?.endTimeLabel || 'End Time',
-dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
-submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
-calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
+  startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
+  endTimeLabel: props.labelsAndSettings?.endTimeLabel || 'End Time',
+  dateLabel: props.labelsAndSettings?.dateLabel || 'Date',
+  submitButtonText: props.labelsAndSettings?.submitButtonText || 'Add Entry',
+  calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
+  todosLabel: props.labelsAndSettings?.todosLabel,
+  participantsLabel: props.labelsAndSettings?.participantsLabel,
 }));
 
-// Ref variables
+const placeholderSettings = computed(() => props.placeholderSettings || {});
+
 const schedules = ref(props.schedules);
 const additionalFields = ref(props.additionalFields);
-const hours = ref([
-'00:00', '01:00', '02:00', '03:00', '04:00', '05:00', '06:00', '07:00', 
-'08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', 
-'16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00', '23:00'
-]);
+const hours = ref(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
 
 const events = ref<Record<string, EventInfo[]>>({});
 const newEvent = ref<Partial<EventInfo>>({ start: '', end: '', date: '', color: '' });
-const eventInfoPopup = ref<{ visible: boolean; event: EventInfo | {} }>({ visible: false, event: {} });
+const popupVisible = computed(() => props.popupVisible);
+const popupEvent = computed(() => props.popupEvent);
 const currentWeekOffset = ref(0);
+const draggedEvent = ref<EventInfo | null>(null);
 
-// Helper function to check if event is of type EventInfo
-function isEventInfo(event: any): event is EventInfo {
-  return (event as EventInfo).title !== undefined;
-}
-
-const addEvent = async () => {
-const event: Partial<EventInfo> = {
-  start: newEvent.value.start,
-  end: newEvent.value.end,
-  date: newEvent.value.date,
-  info: newEvent.value.info,
-  color: newEvent.value.color,
+const addEvent = () => {
+  const event: Partial<EventInfo> = {
+    start: newEvent.value.start,
+    end: newEvent.value.end,
+    date: newEvent.value.date,
+    info: newEvent.value.info,
+    color: newEvent.value.color,
+  };
+  props.additionalFields.forEach((field) => {
+    event[field.model] = newEvent.value[field.model];
+  });
+  emit('submit-event', event as EventInfo);
+  Object.keys(newEvent.value).forEach((key) => {
+    newEvent.value[key as keyof EventInfo] = '' as any;
+  });
 };
 
-props.additionalFields.forEach((field) => {
-  event[field.model] = newEvent.value[field.model];
-});
-
-emit('submitEvent', event as EventInfo);
-
-Object.keys(newEvent.value).forEach((key) => {
-  newEvent.value[key as keyof EventInfo] = '';
-});
+const handlePopupUpdate = (updated: EventInfo) => {
+  emit('update-event', updated);
 };
 
-// Load and assign events
 const loadEvents = () => {
-if (!additionalFields.value.length || !schedules.value.length) return;
-
-events.value = {}; // Events-Objekt leeren
-
-schedules.value.forEach((event) => {
-  const eventDate = event.date;
-
-  if (!events.value[eventDate]) {
-    events.value[eventDate] = [];
-  }
-  events.value[eventDate].push(event);
-});
+  if (!additionalFields.value.length || !schedules.value.length) return;
+  events.value = {};
+  schedules.value.forEach((event) => {
+    const eventDate = event.date;
+    if (!events.value[eventDate]) events.value[eventDate] = [];
+    events.value[eventDate].push(event);
+  });
 };
-
 watchEffect(loadEvents);
 
-// Function to remove an event
-const removeEventById = (eventId: number | string) => {
-for (const date in events.value) {
-  events.value[date] = events.value[date].filter(event => event.id !== eventId);
-}
-closeEventInfoPopup();
-};
-
-// Helper for calculating the date for each day of the week
 const getDateForWeekday = (weekdayIndex: number) => {
-const today = new Date();
-const currentWeekday = today.getDay();
-const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
-const resultDate = new Date(today);
-resultDate.setDate(today.getDate() + distance);
-return resultDate.toISOString().substring(0, 10);
+  const today = new Date();
+  const currentWeekday = today.getDay();
+  const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
+  const resultDate = new Date(today);
+  resultDate.setDate(today.getDate() + distance);
+  return resultDate.toISOString().substring(0, 10);
 };
 
-// Helper for calculating the calendar week
 const getCurrentWeekNumber = () => {
-const today = new Date();
-const startOfYear = new Date(today.getFullYear(), 0, 1);
-const pastDaysOfYear = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
-return Math.ceil((pastDaysOfYear + startOfYear.getDay() + 1) / 7);
+  const today = new Date();
+  const startOfYear = new Date(today.getFullYear(), 0, 1);
+  const pastDays = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
+  return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
 };
 
-// Navigation between weeks
-const prevWeek = () => currentWeekOffset.value -= 1;
-const nextWeek = () => currentWeekOffset.value += 1;
+const prevWeek = () => (currentWeekOffset.value -= 1);
+const nextWeek = () => (currentWeekOffset.value += 1);
 
-// Styling of an event based on start and end time
 const getEventStyle = (event: EventInfo) => {
-const startHour = parseInt(event.start.substring(0, 2));
-const startMinutes = parseInt(event.start.substring(3, 5));
-const endHour = parseInt(event.end.substring(0, 2));
-const endMinutes = parseInt(event.end.substring(3, 5));
-
-const startTotalMinutes = startHour * 60 + startMinutes;
-const endTotalMinutes = endHour * 60 + endMinutes;
-
-const topPosition = (startTotalMinutes * 40) / 60;
-let height = ((endTotalMinutes - startTotalMinutes) * 40) / 60;
-
-if (endMinutes === 0) height += 40;
-
-return {
-  backgroundColor: event.color || '#a4d8ff',
-  top: `${topPosition}px`,
-  height: `${height}px`,
-  position: 'absolute' as 'absolute',
-  left: 0,
-  right: 0,
-  zIndex: 1,
+  const start = parseTime(event.start);
+  const end = parseTime(event.end);
+  const top = (start.totalMinutes * 40) / 60;
+  const height = ((end.totalMinutes - start.totalMinutes) * 40) / 60;
+  return {
+    backgroundColor: event.color || 'var(--calendar-primary-color)',
+    top: `${top}px`,
+    height: `${height}px`,
+    position: 'absolute' as const,
+    left: 0,
+    right: 0,
+    zIndex: 1,
+    borderRadius: 'var(--event-border-radius)',
+  };
 };
+
+const parseTime = (timeStr: string) => {
+  const [h, m] = timeStr.split(':').map(Number);
+  return { h, m, totalMinutes: h * 60 + m };
+};
+
+const getDurationInMinutes = (start: string, end: string) =>
+    parseTime(end).totalMinutes - parseTime(start).totalMinutes;
+
+const calculateNewEnd = (start: string, duration: number) => {
+  const total = parseTime(start).totalMinutes + duration;
+  const h = Math.floor(total / 60).toString().padStart(2, '0');
+  const m = (total % 60).toString().padStart(2, '0');
+  return `${h}:${m}`;
+};
+
+const onDragStart = (_event: DragEvent, event: EventInfo) => {
+  draggedEvent.value = event;
+};
+
+const onDragEnd = () => {
+  draggedEvent.value = null;
+};
+
+const onDrop = (e: DragEvent, dayIndex: number) => {
+  if (!draggedEvent.value) return;
+  const target = e.currentTarget as HTMLElement;
+  const rect = target.getBoundingClientRect();
+  const dropY = e.clientY - rect.top;
+  const minutesPerPixel = 60 / 40;
+  const newStartMinutes = Math.round((dropY * minutesPerPixel) / 15) * 15;
+  const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
+  const duration = getDurationInMinutes(draggedEvent.value.start, draggedEvent.value.end);
+  const newEnd = calculateNewEnd(newStart, duration);
+  const newDate = getDateForWeekday(dayIndex);
+
+  const updatedEvent = {
+    ...draggedEvent.value,
+    start: newStart,
+    end: newEnd,
+    date: newDate,
+  };
+
+  emit('update-event', updatedEvent);
+
+  const oldDate = draggedEvent.value.date;
+  events.value[oldDate] = events.value[oldDate]?.filter((ev) => ev.id !== draggedEvent.value!.id) || [];
+  events.value[newDate] = [...(events.value[newDate] || []), updatedEvent];
+  draggedEvent.value = null;
 };
 
 const showEventInfo = (event: EventInfo) => {
-eventInfoPopup.value.event = event;
-eventInfoPopup.value.visible = true;
+  emit('show-info', event);
 };
 
-const closeEventInfoPopup = () => eventInfoPopup.value.visible = false;
-
-const emitDeleteEvent = (eventId) => {
-  emit('handleDelete', eventId);
+const closeEventInfoPopup = () => {
+  emit('close-popup');
 };
+
+const emitDeleteEvent = (eventId: number) => emit('handle-delete', eventId);
 
 onMounted(() => {
-props.additionalFields.forEach((field) => {
-  newEvent.value[field.model] = '';
-});
+  // init additional field models
+  props.additionalFields.forEach((field) => {
+    (newEvent.value as any)[field.model] = '';
+  });
+  // init theme from system preference
+  const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+  if (mq?.matches) isDark.value = true;
 });
 </script>
-  
+
 <style>
-  .small-logo {
-    width: 20px;
-    height: 20px;
-  }
+/* ---- LIGHT DEFAULTS ---- */
+.calendar-theme {
+  /* Core */
+  --body-bg-color: #ffffff;
+  --body-text-color: #000000;
 
-  .form-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--form-gap, 1rem);
-    background-color: var(--form-bg-color);
-    padding: var(--form-padding);
-    border-radius: var(--form-border-radius);
-    border: var(--form-border);
-    margin-bottom: 20px;
-  }
+  /* Forms */
+  --form-bg-color: #ffffff;
+  --form-padding: 1rem;
+  --form-border-radius: 8px;
+  --form-border: 1px solid #ccc;
 
-  .form-group {
-    flex: 1;
-    min-width: 200px;
-    margin-bottom: 10px;
-  }
+  --label-color: #333333;
+  --label-font-weight: bold;
 
-  .form-label {
-    display: block;
-    color: var(--label-color);
-    font-weight: var(--label-font-weight);
-    margin-bottom: 4px;
-  }
+  --input-height: 40px;
+  --input-padding: 0.5rem;
+  --input-font-size: 1rem;
+  --input-border: 1px solid #ccc;
+  --input-border-radius: 6px;
+  --input-bg-color: #ffffff;
+  --input-color: #000000;
 
-  .form-input,
-  .form-select {
-    width: 100%;
-    height: var(--input-height, 40px);
-    padding: var(--input-padding);
-    font-size: var(--input-font-size);
-    border: var(--input-border);
-    border-radius: var(--input-border-radius);
-    box-sizing: border-box;
-    appearance: none;
-  }
+  /* Accent */
+  --accent-color: #007bff;
+  --accent-contrast: #ffffff;
 
-  .submit-button {
-    background-color: var(--button-bg-color);
-    color: var(--button-color);
-    padding: var(--button-padding);
-    border-radius: var(--button-border-radius);
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-size: 1rem;
-  }
+  /* Calendar + Grid */
+  --calendar-primary-color: #a4d8ff;
+  --grid-border-color: #cccccc;
 
-  .submit-button:hover {
-    background-color: var(--button-hover-bg-color);
-  }
+  /* Buttons */
+  --button-bg-color: var(--accent-color);
+  --button-hover-bg-color: #0056b3;
+  --button-color: var(--accent-contrast);
+  --button-padding: 0.6rem 1rem;
 
-  .weekdays {
-    list-style-type: none;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 0;
-    border-bottom: 1px solid #ccc;
-    margin: 0;
-    height: 40px;
-  }
+  /* Event */
+  --event-border-radius: 8px;
 
-  .weekday {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    text-align: center;
-    margin-bottom: 13px;
-  }
+  /* Nav / Week */
+  --arrow-button-bg: var(--accent-color);
+  --arrow-button-color: var(--accent-contrast);
+  --current-week-color: #000000;
 
-  .calendar {
-    display: flex;
-    flex-direction: column;
-  }
+  /* Popup */
+  --popup-bg: #ffffff;
+  --popup-overlay-bg: rgba(0, 0, 0, 0.5);
+  --popup-border-radius: 5px;
 
-  .hours-and-days {
-    display: flex;
-    align-items: stretch;
-  }
+  /* Danger (remove) */
+  --danger-bg: #e53e3e;
+  --danger-text: #ffffff;
 
-  .hours {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
-    width: 50px;
-    height: 100%;
-  }
+  color: var(--body-text-color);
+}
 
-  .hours .hour {
-    min-height: 40px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-sizing: border-box;
-    flex-grow: 1;
-  }
+.calendar-theme.dark {
 
-  .weekdays-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-  }
+  --body-text-color: #ffffff;
 
-  .days {
-    display: flex;
-    flex-grow: 1;
-  }
+  --form-bg-color: #1c1c1c;
+  --form-border: 1px solid rgba(255, 255, 255, 0.1);
+  --label-color: #ffffff;
 
-  .day {
-    flex: 1;
-    border-left: 1px solid #ccc;
-    position: relative;
-  }
+  --input-bg-color: #1e1e1e;
+  --input-border: 1px solid rgba(255, 255, 255, 0.15);
+  --input-color: #ffffff;
 
-  .day .hour {
-    min-height: 40px;
-    border-bottom: 1px solid #ccc;
-    display: flex;
-    align-items: center;
-    box-sizing: border-box;
-    flex-grow: 1;
-  }
+  --accent-color: #D2F7D8;
+  --accent-contrast: #121212;
 
-  .event {
-    background-color: #a4d8ff;
-    padding: 2px;
-    font-size: 12px;
-    border-radius: 8px;
-    width: 95%;
-    box-sizing: border-box;
-    position: absolute;
-  }
+  --calendar-primary-color: #D2F7D8;
+  --grid-border-color: rgba(255, 255, 255, 0.12);
 
-  .remove-button {
-    background-color: #e53e3e;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 1rem;
-  }
+  --button-bg-color: var(--accent-color);
+  --button-hover-bg-color: #b2e7c0;
+  --button-color: var(--accent-contrast);
 
-  .empty-slot {
-    height: 40px;
-  }
+  --current-week-color: #ffffff;
 
-  .navigation {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 2rem;
-  }
+  --popup-bg: rgba(18, 18, 18, 0.95);
+  --popup-overlay-bg: rgba(0, 0, 0, 0.7);
+}
 
-  .arrow-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin: 0 1rem;
-  }
+/* ---- SYSTEM DARK DEFAULT (if you don't set .dark/.light) ---- */
+@media (prefers-color-scheme: dark) {
+  .calendar-theme:not(.dark):not(.light) {
+    --body-bg-color: #121212;
+    --body-text-color: #ffffff;
 
-  .current-week {
-    font-size: 1.2rem;
-    font-weight: bold;
-  }
+    --form-bg-color: #1c1c1c;
+    --form-border: 1px solid rgba(255, 255, 255, 0.1);
+    --label-color: #ffffff;
 
-  .info-button {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background-color: transparent;
-    border: none;
-    color: blue;
-    font-weight: bold;
-    cursor: pointer;
-  }
+    --input-bg-color: #1e1e1e;
+    --input-border: 1px solid rgba(255, 255, 255, 0.15);
+    --input-color: #ffffff;
 
-  .popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
+    --accent-color: #D2F7D8;
+    --accent-contrast: #121212;
 
-  .popup-content {
-    background-color: white;
-    padding: 1rem;
-    border-radius: 5px;
-    max-width: 400px;
-    width: 100%;
-  }
+    --calendar-primary-color: #D2F7D8;
+    --grid-border-color: rgba(255, 255, 255, 0.12);
 
-  .close-button {
-    background-color: #007bff;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    border-radius: 5px;
-    margin-top: 1rem;
+    --button-bg-color: var(--accent-color);
+    --button-hover-bg-color: #b2e7c0;
+    --button-color: var(--accent-contrast);
+
+    --current-week-color: #ffffff;
+
+    --popup-bg: rgba(18, 18, 18, 0.95);
+    --popup-overlay-bg: rgba(0, 0, 0, 0.7);
   }
+}
+
+/* ====== COMPONENT STYLES (use variables) ====== */
+
+.calendar-theme .small-logo {
+  width: 20px;
+  height: 20px;
+}
+
+.calendar-theme .form-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--form-gap, 1rem);
+  background-color: var(--form-bg-color);
+  padding: var(--form-padding);
+  border-radius: var(--form-border-radius);
+  border: var(--form-border);
+  margin-bottom: 20px;
+}
+
+.calendar-theme .form-group {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 10px;
+}
+
+.calendar-theme .form-label {
+  display: block;
+  color: var(--label-color);
+  font-weight: var(--label-font-weight);
+  margin-bottom: 4px;
+}
+
+.calendar-theme .form-input,
+.calendar-theme .form-select {
+  width: 100%;
+  height: var(--input-height);
+  padding: var(--input-padding);
+  font-size: var(--input-font-size);
+  border: var(--input-border);
+  border-radius: var(--input-border-radius);
+  box-sizing: border-box;
+  appearance: none;
+  background: var(--input-bg-color);
+  color: var(--input-color);
+}
+
+.calendar-theme .submit-button {
+  background-color: var(--button-bg-color);
+  color: var(--button-color);
+  padding: var(--button-padding);
+  border-radius: var(--button-border-radius, 6px);
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 1rem;
+}
+.calendar-theme .submit-button:hover {
+  background-color: var(--button-hover-bg-color);
+}
+
+/* Calendar layout */
+.calendar-theme .calendar {
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-theme .hours-and-days {
+  display: flex;
+  align-items: stretch;
+}
+
+.calendar-theme .hours {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 50px;
+  height: 100%;
+}
+
+.calendar-theme .hours .hour {
+  min-height: 40px;
+  border-bottom: 1px solid var(--grid-border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+
+.calendar-theme .weekdays-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.calendar-theme .weekdays {
+  list-style-type: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border-bottom: 1px solid var(--grid-border-color);
+  margin: 0;
+  height: 40px;
+}
+
+.calendar-theme .weekday {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  text-align: center;
+  margin-bottom: 13px;
+}
+
+.calendar-theme .days {
+  display: flex;
+  flex-grow: 1;
+}
+
+.calendar-theme .day {
+  flex: 1;
+  border-left: 1px solid var(--grid-border-color);
+  position: relative;
+}
+
+.calendar-theme .day .hour {
+  min-height: 40px;
+  border-bottom: 1px solid var(--grid-border-color);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  flex-grow: 1;
+}
+
+.calendar-theme .event {
+  background-color: var(--calendar-primary-color);
+  padding: 2px;
+  font-size: 12px;
+  border-radius: var(--event-border-radius);
+  width: 95%;
+  box-sizing: border-box;
+  position: absolute;
+}
+
+.calendar-theme .event span {
+  color: var(--event-title-color, #000);
+  font-size: var(--event-title-size, 16px);
+}
+
+.calendar-theme .remove-button {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
+
+.calendar-theme .empty-slot {
+  height: 40px;
+}
+
+.calendar-theme .navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.calendar-theme .arrow-button {
+  background-color: var(--arrow-button-bg);
+  color: var(--arrow-button-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin: 0 1rem;
+}
+
+.calendar-theme .current-week {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--current-week-color);
+}
+
+.calendar-theme .info-button {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: transparent;
+  border: none;
+  color: var(--accent-color);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.calendar-theme .popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--popup-overlay-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.calendar-theme .popup-content {
+  background-color: var(--popup-bg);
+  padding: 1rem;
+  border-radius: var(--popup-border-radius);
+  max-width: 400px;
+  width: 100%;
+}
+
+.calendar-theme .close-button {
+  background-color: var(--button-bg-color);
+  color: var(--button-color);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+}
 </style>
-  
