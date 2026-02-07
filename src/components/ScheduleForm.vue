@@ -1,7 +1,7 @@
 <template>
   <div :class="['calendar-theme', customClass, { dark: isDark }]" :style="customStyles">
 
-    <!-- SLOT FOR CUSTOM FORM -->
+    <!-- CUSTOM FORM SLOT -->
     <slot
         name="form"
         :new-event="newEvent"
@@ -24,7 +24,13 @@
           </div>
 
           <div v-else>
-            <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input" />
+            <input
+                :id="field.id"
+                v-model="newEvent[field.model]"
+                :type="field.type"
+                required
+                class="form-input"
+            />
           </div>
         </div>
 
@@ -49,11 +55,12 @@
       </form>
     </slot>
 
+    <!-- CALENDAR -->
     <div class="calendar">
       <div class="navigation">
-        <button class="arrow-button" @click="prevWeek">&lt;</button>
+        <button type="button" class="arrow-button" @click="prevWeek">&lt;</button>
         <span class="current-week">{{ labelsAndSettings.calendarWeekLabel }} {{ getCurrentWeekNumber() }}</span>
-        <button class="arrow-button" @click="nextWeek">&gt;</button>
+        <button type="button" class="arrow-button" @click="nextWeek">&gt;</button>
       </div>
 
       <div class="hours-and-days">
@@ -81,7 +88,7 @@
               <div v-for="hour in hours" :key="hour" class="hour"></div>
 
               <div
-                  v-for="(event, eventIndex) in events[getDateForWeekday(dayIndex)] || []"
+                  v-for="event in events[getDateForWeekday(dayIndex)] || []"
                   :key="event.id"
                   class="event"
                   :style="getEventStyle(event)"
@@ -89,8 +96,11 @@
                   @dragstart="onDragStart($event, event)"
                   @dragend="onDragEnd"
               >
-                <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span><br />
-                <button class="info-button" @click="showEventInfo(event)">
+                <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">
+                  {{ event.title }}
+                </span>
+                <br />
+                <button type="button" class="info-button" @click="showEventInfo(event)">
                   <img :src="myLogoSrc" alt="info" class="small-logo" />
                 </button>
               </div>
@@ -100,7 +110,7 @@
       </div>
     </div>
 
-    <!-- SLOT FOR CUSTOM POPUP -->
+    <!-- CUSTOM POPUP SLOT -->
     <slot name="popup-calendar" v-if="$slots['popup-calendar']"></slot>
 
     <!-- DEFAULT POPUP -->
@@ -126,10 +136,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect, onMounted } from 'vue';
+import { ref, computed, watchEffect, onMounted, useSlots } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
+
+// ============================================================================
+// Props
+// ============================================================================
 
 const props = withDefaults(
     defineProps<{
@@ -169,23 +183,56 @@ const props = withDefaults(
     }
 );
 
-const emit = defineEmits([
-  'submit-event',
-  'handle-delete',
-  'update-event',
-  'show-info',
-  'close-popup',
-  'update:todos',
-  'update:participants'
-]);
+// ============================================================================
+// Emits
+// ============================================================================
+
+const emit = defineEmits<{
+  'submit-event': [event: EventInfo];
+  'handle-delete': [eventId: number];
+  'update-event': [event: EventInfo];
+  'show-info': [event: EventInfo];
+  'close-popup': [];
+  'update:todos': [payload: { todos: string[]; eventId: number }];
+  'update:participants': [payload: { participants: string[]; eventId: number }];
+}>();
+
+// ============================================================================
+// Slots
+// ============================================================================
+
+const slots = useSlots();
+
+// ============================================================================
+// State
+// ============================================================================
 
 const isDark = ref(false);
+const events = ref<Record<string, EventInfo[]>>({});
+const newEvent = ref<Partial<EventInfo>>({
+  start: '',
+  end: '',
+  date: '',
+  color: '',
+  title: '',
+  description: '',
+});
+const currentWeekOffset = ref(0);
+const draggedEvent = ref<EventInfo | null>(null);
 
-const weekdays = computed(
-    () => props.weekdays || ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+const hours = ref(
+    Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00')
 );
-const eventTitleColor = computed(() => props.eventTitleColor || '#000');
-const eventTitleSize = computed(() => props.eventTitleSize || '16px');
+
+// ============================================================================
+// Computed
+// ============================================================================
+
+const weekdays = computed(() => props.weekdays);
+const eventTitleColor = computed(() => props.eventTitleColor);
+const eventTitleSize = computed(() => props.eventTitleSize);
+const additionalFields = computed(() => props.additionalFields);
+
 const labelsAndSettings = computed(() => ({
   startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
   endTimeLabel: props.labelsAndSettings?.endTimeLabel || 'End Time',
@@ -197,61 +244,62 @@ const labelsAndSettings = computed(() => ({
 }));
 
 const placeholderSettings = computed(() => props.placeholderSettings || {});
-
-const schedules = ref(props.schedules);
-const additionalFields = ref(props.additionalFields);
-const hours = ref(Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00'));
-
-const events = ref<Record<string, EventInfo[]>>({});
-const newEvent = ref<Partial<EventInfo>>({ start: '', end: '', date: '', color: '' });
 const popupVisible = computed(() => props.popupVisible);
 const popupEvent = computed(() => props.popupEvent);
-const currentWeekOffset = ref(0);
-const draggedEvent = ref<EventInfo | null>(null);
 
+// ============================================================================
+// Methods - Form
+// ============================================================================
+
+/**
+ * Reset form to initial state
+ */
+const resetForm = () => {
+  newEvent.value = {
+    start: '',
+    end: '',
+    date: '',
+    color: '',
+    title: '',
+    description: '',
+  };
+
+  // Reset additional field models
+  props.additionalFields.forEach((field) => {
+    (newEvent.value as any)[field.model] = '';
+  });
+};
+
+/**
+ * Add/Submit event
+ */
 const addEvent = (externalEvent?: Partial<EventInfo>) => {
   const eventData = externalEvent || newEvent.value;
 
   const event: Partial<EventInfo> = {
+    title: eventData.title,
     start: eventData.start,
     end: eventData.end,
     date: eventData.date,
     info: eventData.info,
     color: eventData.color,
+    description: eventData.description,
   };
 
+  // Add additional field values
   props.additionalFields.forEach((field) => {
     event[field.model] = eventData[field.model];
   });
+
   emit('submit-event', event as EventInfo);
   resetForm();
-  Object.keys(newEvent.value).forEach((key) => {
-    newEvent.value[key as keyof EventInfo] = '' as any;
-  });
 };
 
-const handlePopupUpdate = (updated: EventInfo) => {
-  emit('update-event', updated);
-};
+// ============================================================================
+// Methods - Calendar Navigation
+// ============================================================================
 
-const loadEvents = () => {
-  if (!additionalFields.value.length || !schedules.value.length) return;
-  events.value = {};
-  schedules.value.forEach((event) => {
-    const eventDate = event.date;
-    if (!events.value[eventDate]) events.value[eventDate] = [];
-    events.value[eventDate].push(event);
-  });
-};
-watchEffect(loadEvents);
-
-const resetForm = () => {
-  Object.keys(newEvent.value).forEach((key) => {
-    newEvent.value[key as keyof EventInfo] = '' as any;
-  });
-};
-
-const getDateForWeekday = (weekdayIndex: number) => {
+const getDateForWeekday = (weekdayIndex: number): string => {
   const today = new Date();
   const currentWeekday = today.getDay();
   const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
@@ -260,21 +308,36 @@ const getDateForWeekday = (weekdayIndex: number) => {
   return resultDate.toISOString().substring(0, 10);
 };
 
-const getCurrentWeekNumber = () => {
+const getCurrentWeekNumber = (): number => {
   const today = new Date();
   const startOfYear = new Date(today.getFullYear(), 0, 1);
   const pastDays = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
   return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
 };
 
-const prevWeek = () => (currentWeekOffset.value -= 1);
-const nextWeek = () => (currentWeekOffset.value += 1);
+const prevWeek = () => {
+  currentWeekOffset.value -= 1;
+};
+
+const nextWeek = () => {
+  currentWeekOffset.value += 1;
+};
+
+// ============================================================================
+// Methods - Event Styling
+// ============================================================================
+
+const parseTime = (timeStr: string) => {
+  const [h, m] = timeStr.split(':').map(Number);
+  return { h, m, totalMinutes: h * 60 + m };
+};
 
 const getEventStyle = (event: EventInfo) => {
   const start = parseTime(event.start);
   const end = parseTime(event.end);
   const top = (start.totalMinutes * 40) / 60;
   const height = ((end.totalMinutes - start.totalMinutes) * 40) / 60;
+
   return {
     backgroundColor: event.color || 'var(--calendar-primary-color)',
     top: `${top}px`,
@@ -287,15 +350,15 @@ const getEventStyle = (event: EventInfo) => {
   };
 };
 
-const parseTime = (timeStr: string) => {
-  const [h, m] = timeStr.split(':').map(Number);
-  return { h, m, totalMinutes: h * 60 + m };
+// ============================================================================
+// Methods - Drag & Drop
+// ============================================================================
+
+const getDurationInMinutes = (start: string, end: string): number => {
+  return parseTime(end).totalMinutes - parseTime(start).totalMinutes;
 };
 
-const getDurationInMinutes = (start: string, end: string) =>
-    parseTime(end).totalMinutes - parseTime(start).totalMinutes;
-
-const calculateNewEnd = (start: string, duration: number) => {
+const calculateNewEnd = (start: string, duration: number): string => {
   const total = parseTime(start).totalMinutes + duration;
   const h = Math.floor(total / 60).toString().padStart(2, '0');
   const m = (total % 60).toString().padStart(2, '0');
@@ -312,11 +375,13 @@ const onDragEnd = () => {
 
 const onDrop = (e: DragEvent, dayIndex: number) => {
   if (!draggedEvent.value) return;
+
   const target = e.currentTarget as HTMLElement;
   const rect = target.getBoundingClientRect();
   const dropY = e.clientY - rect.top;
   const minutesPerPixel = 60 / 40;
   const newStartMinutes = Math.round((dropY * minutesPerPixel) / 15) * 15;
+
   const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
   const duration = getDurationInMinutes(draggedEvent.value.start, draggedEvent.value.end);
   const newEnd = calculateNewEnd(newStart, duration);
@@ -331,11 +396,16 @@ const onDrop = (e: DragEvent, dayIndex: number) => {
 
   emit('update-event', updatedEvent);
 
+  // Update local state
   const oldDate = draggedEvent.value.date;
   events.value[oldDate] = events.value[oldDate]?.filter((ev) => ev.id !== draggedEvent.value!.id) || [];
   events.value[newDate] = [...(events.value[newDate] || []), updatedEvent];
   draggedEvent.value = null;
 };
+
+// ============================================================================
+// Methods - Popup
+// ============================================================================
 
 const showEventInfo = (event: EventInfo) => {
   emit('show-info', event);
@@ -345,17 +415,56 @@ const closeEventInfoPopup = () => {
   emit('close-popup');
 };
 
-const emitDeleteEvent = (eventId: number) => emit('handle-delete', eventId);
+const emitDeleteEvent = (eventId: number) => {
+  emit('handle-delete', eventId);
+};
+
+const handlePopupUpdate = (updated: EventInfo) => {
+  emit('update-event', updated);
+};
+
+// ============================================================================
+// Watchers
+// ============================================================================
+
+const loadEvents = () => {
+  if (!props.schedules.length) {
+    events.value = {};
+    return;
+  }
+
+  events.value = {};
+  props.schedules.forEach((event) => {
+    const eventDate = event.date;
+    if (!events.value[eventDate]) {
+      events.value[eventDate] = [];
+    }
+    events.value[eventDate].push(event);
+  });
+};
+
+watchEffect(loadEvents);
+
+// ============================================================================
+// Lifecycle
+// ============================================================================
 
 onMounted(() => {
-  // init additional field models
+  // Init additional field models
   props.additionalFields.forEach((field) => {
     (newEvent.value as any)[field.model] = '';
   });
-  // init theme from system preference
+
+  // Init theme from system preference
   const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-  if (mq?.matches) isDark.value = true;
+  if (mq?.matches) {
+    isDark.value = true;
+  }
 });
+
+// ============================================================================
+// Expose (for external access via ref)
+// ============================================================================
 
 defineExpose({
   newEvent,
@@ -365,7 +474,9 @@ defineExpose({
 </script>
 
 <style>
-/* ---- LIGHT DEFAULTS ---- */
+/* ============================================================================
+   LIGHT THEME DEFAULTS
+============================================================================ */
 .calendar-theme {
   /* Core */
   --body-bg-color: #ffffff;
@@ -376,6 +487,7 @@ defineExpose({
   --form-padding: 1rem;
   --form-border-radius: 8px;
   --form-border: 1px solid #ccc;
+  --form-gap: 1rem;
 
   --label-color: #333333;
   --label-font-weight: bold;
@@ -401,6 +513,7 @@ defineExpose({
   --button-hover-bg-color: #0056b3;
   --button-color: var(--accent-contrast);
   --button-padding: 0.6rem 1rem;
+  --button-border-radius: 6px;
 
   /* Event */
   --event-border-radius: 8px;
@@ -415,15 +528,17 @@ defineExpose({
   --popup-overlay-bg: rgba(0, 0, 0, 0.5);
   --popup-border-radius: 5px;
 
-  /* Danger (remove) */
+  /* Danger */
   --danger-bg: #e53e3e;
   --danger-text: #ffffff;
 
   color: var(--body-text-color);
 }
 
+/* ============================================================================
+   DARK THEME
+============================================================================ */
 .calendar-theme.dark {
-
   --body-text-color: #ffffff;
 
   --form-bg-color: #1c1c1c;
@@ -450,7 +565,9 @@ defineExpose({
   --popup-overlay-bg: rgba(0, 0, 0, 0.7);
 }
 
-/* ---- SYSTEM DARK DEFAULT (if you don't set .dark/.light) ---- */
+/* ============================================================================
+   SYSTEM DARK PREFERENCE
+============================================================================ */
 @media (prefers-color-scheme: dark) {
   .calendar-theme:not(.dark):not(.light) {
     --body-bg-color: #121212;
@@ -481,17 +598,21 @@ defineExpose({
   }
 }
 
-/* ====== COMPONENT STYLES (use variables) ====== */
+/* ============================================================================
+   COMPONENT STYLES
+============================================================================ */
 
+/* Info Logo */
 .calendar-theme .small-logo {
   width: 20px;
   height: 20px;
 }
 
+/* Form Container */
 .calendar-theme .form-container {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--form-gap, 1rem);
+  gap: var(--form-gap);
   background-color: var(--form-bg-color);
   padding: var(--form-padding);
   border-radius: var(--form-border-radius);
@@ -526,21 +647,29 @@ defineExpose({
   color: var(--input-color);
 }
 
+.calendar-theme .form-input:focus,
+.calendar-theme .form-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+}
+
 .calendar-theme .submit-button {
   background-color: var(--button-bg-color);
   color: var(--button-color);
   padding: var(--button-padding);
-  border-radius: var(--button-border-radius, 6px);
+  border-radius: var(--button-border-radius);
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
   font-size: 1rem;
 }
+
 .calendar-theme .submit-button:hover {
   background-color: var(--button-hover-bg-color);
 }
 
-/* Calendar layout */
+/* Calendar Layout */
 .calendar-theme .calendar {
   display: flex;
   flex-direction: column;
@@ -618,6 +747,7 @@ defineExpose({
   flex-grow: 1;
 }
 
+/* Events */
 .calendar-theme .event {
   background-color: var(--calendar-primary-color);
   padding: 2px;
@@ -626,6 +756,17 @@ defineExpose({
   width: 95%;
   box-sizing: border-box;
   position: absolute;
+  cursor: grab;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.calendar-theme .event:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.calendar-theme .event:active {
+  cursor: grabbing;
 }
 
 .calendar-theme .event span {
@@ -633,20 +774,11 @@ defineExpose({
   font-size: var(--event-title-size, 16px);
 }
 
-.calendar-theme .remove-button {
-  background-color: var(--danger-bg);
-  color: var(--danger-text);
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-top: 1rem;
-}
-
 .calendar-theme .empty-slot {
   height: 40px;
 }
 
+/* Navigation */
 .calendar-theme .navigation {
   display: flex;
   justify-content: center;
@@ -662,6 +794,11 @@ defineExpose({
   cursor: pointer;
   border-radius: 5px;
   margin: 0 1rem;
+  transition: background-color 0.15s ease;
+}
+
+.calendar-theme .arrow-button:hover {
+  background-color: var(--button-hover-bg-color);
 }
 
 .calendar-theme .current-week {
@@ -670,6 +807,7 @@ defineExpose({
   color: var(--current-week-color);
 }
 
+/* Info Button */
 .calendar-theme .info-button {
   position: absolute;
   top: 2px;
@@ -679,8 +817,32 @@ defineExpose({
   color: var(--accent-color);
   font-weight: bold;
   cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease;
 }
 
+.calendar-theme .info-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Remove Button */
+.calendar-theme .remove-button {
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+  transition: filter 0.15s ease;
+}
+
+.calendar-theme .remove-button:hover {
+  filter: brightness(0.9);
+}
+
+/* Popup */
 .calendar-theme .popup {
   position: fixed;
   top: 0;
@@ -710,5 +872,30 @@ defineExpose({
   cursor: pointer;
   border-radius: 5px;
   margin-top: 1rem;
+}
+
+/* ============================================================================
+   RESPONSIVE
+============================================================================ */
+@media (max-width: 768px) {
+  .calendar-theme .form-container {
+    flex-direction: column;
+  }
+
+  .calendar-theme .form-group {
+    min-width: 100%;
+  }
+
+  .calendar-theme .weekday span:first-child {
+    font-size: 0.75rem;
+  }
+
+  .calendar-theme .event {
+    font-size: 10px;
+  }
+
+  .calendar-theme .event span {
+    font-size: 12px !important;
+  }
 }
 </style>
