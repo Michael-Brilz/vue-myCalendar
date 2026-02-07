@@ -1,49 +1,49 @@
-import { computed as T, ref as _, watch as fe, defineComponent as se, resolveComponent as ge, openBlock as i, createElementBlock as d, createElementVNode as e, createVNode as W, toDisplayString as v, unref as g, Fragment as C, renderList as $, withDirectives as F, vModelText as I, createCommentVNode as X, createTextVNode as te, isRef as ae, watchEffect as ye, onMounted as _e, normalizeStyle as H, normalizeClass as Le, renderSlot as oe, withModifiers as ne, vModelSelect as we, vModelDynamic as De, createBlock as ke } from "vue";
-function Se(f, M) {
-  const k = T(() => f.popupFields || []), s = _({ ...f.eventData }), m = _([...f.eventData?.todos || []]), u = _([...f.eventData?.participants || []]);
-  fe(() => f.eventData, (o) => {
-    o && (s.value = { ...o }, m.value = [...o.todos || []], u.value = [...o.participants || []]);
+import { computed as D, ref as k, watch as be, defineComponent as ne, resolveComponent as he, openBlock as i, createElementBlock as d, createElementVNode as e, createVNode as z, toDisplayString as m, unref as L, Fragment as C, renderList as E, withDirectives as A, vModelText as I, createCommentVNode as X, createTextVNode as ee, isRef as te, useSlots as fe, watchEffect as ge, onMounted as ye, normalizeStyle as H, normalizeClass as _e, renderSlot as oe, withModifiers as ae, vModelSelect as Le, vModelDynamic as we, createBlock as De } from "vue";
+function ke(y, $) {
+  const w = D(() => y.popupFields || []), n = k({ ...y.eventData }), b = k([...y.eventData?.todos || []]), r = k([...y.eventData?.participants || []]);
+  be(() => y.eventData, (s) => {
+    s && (n.value = { ...s }, b.value = [...s.todos || []], r.value = [...s.participants || []]);
   }, { immediate: !0 });
-  const E = (o) => o.replace(/_/g, " ").replace(/\b\w/g, (B) => B.toUpperCase()), z = T(() => k.value.length === 0 ? s.value : Object.fromEntries(
-    Object.entries(s.value).filter(([o]) => k.value.includes(o))
-  )), V = (o, B) => {
-    s.value[o] = B, M("updateEvent", s.value);
-  }, c = _(""), P = () => {
-    const o = c.value.trim();
-    o && (m.value.push(o), c.value = "", M("update:todos", { todos: [...m.value], eventId: s.value.id }));
-  }, A = (o) => {
-    m.value.splice(o, 1), M("update:todos", { todos: [...m.value], eventId: s.value.id });
-  }, L = _("");
+  const c = (s) => s.replace(/_/g, " ").replace(/\b\w/g, (x) => x.toUpperCase()), u = D(() => w.value.length === 0 ? n.value : Object.fromEntries(
+    Object.entries(n.value).filter(([s]) => w.value.includes(s))
+  )), M = (s, x) => {
+    n.value[s] = x, $("updateEvent", n.value);
+  }, p = k(""), P = () => {
+    const s = p.value.trim();
+    s && (b.value.push(s), p.value = "", $("update:todos", { todos: [...b.value], eventId: n.value.id }));
+  }, B = (s) => {
+    b.value.splice(s, 1), $("update:todos", { todos: [...b.value], eventId: n.value.id });
+  }, S = k("");
   return {
-    editableEventData: s,
-    popupFields: k,
-    filteredEventData: z,
-    formatKey: E,
-    updateField: V,
+    editableEventData: n,
+    popupFields: w,
+    filteredEventData: u,
+    formatKey: c,
+    updateField: M,
     // Todos
-    localTodos: m,
-    newTodo: c,
+    localTodos: b,
+    newTodo: p,
     addTodo: P,
-    removeTodo: A,
+    removeTodo: B,
     // Participants
-    localParticipants: u,
-    newParticipant: L,
+    localParticipants: r,
+    newParticipant: S,
     addParticipant: () => {
-      const o = L.value.trim();
-      o && (u.value.push(o), L.value = "", M("update:participants", { participants: [...u.value], eventId: s.value.id }));
+      const s = S.value.trim();
+      s && (r.value.push(s), S.value = "", $("update:participants", { participants: [...r.value], eventId: n.value.id }));
     },
-    removeParticipant: (o) => {
-      u.value.splice(o, 1), M("update:participants", { participants: [...u.value], eventId: s.value.id });
+    removeParticipant: (s) => {
+      r.value.splice(s, 1), $("update:participants", { participants: [...r.value], eventId: n.value.id });
     }
   };
 }
-const Te = {
+const Se = {
   key: 0,
   class: "popup"
-}, Ce = { class: "top-right-icons" }, Ee = { class: "popup-title" }, $e = { key: 0 }, Me = {
+}, Te = { class: "top-right-icons" }, Ce = { class: "popup-title" }, Ee = { key: 0 }, $e = {
   key: 0,
   class: "popup-field"
-}, Pe = { class: "popup-label" }, xe = ["onUpdate:modelValue", "placeholder"], Fe = { class: "section" }, Ae = { class: "popup-label" }, Ue = { class: "list" }, Be = ["onClick"], Ve = { class: "input-row" }, We = { class: "section" }, Ie = { class: "popup-label" }, ze = { class: "list" }, Ne = ["onClick"], Oe = { class: "input-row" }, qe = /* @__PURE__ */ se({
+}, Me = { class: "popup-label" }, Pe = ["onUpdate:modelValue", "placeholder"], xe = { class: "section" }, Fe = { class: "popup-label" }, Ae = { class: "list" }, Ue = ["onClick"], Be = { class: "input-row" }, Ve = { class: "section" }, We = { class: "popup-label" }, ze = { class: "list" }, Ie = ["onClick"], Ne = { class: "input-row" }, qe = /* @__PURE__ */ ne({
   __name: "Popup",
   props: {
     visible: { type: Boolean },
@@ -58,166 +58,166 @@ const Te = {
     participantPlaceholder: {}
   },
   emits: ["submit-event", "handle-delete", "update-event", "show-info", "close-popup", "update:todos", "update:participants"],
-  setup(f, { emit: M }) {
-    const k = f, s = T(() => k.todosLabel || "To-do"), m = T(() => k.participantsLabel || "Participant"), u = M, {
-      editableEventData: E,
-      filteredEventData: z,
-      formatKey: V,
-      localTodos: c,
+  setup(y, { emit: $ }) {
+    const w = y, n = D(() => w.todosLabel || "To-do"), b = D(() => w.participantsLabel || "Participant"), r = $, {
+      editableEventData: c,
+      filteredEventData: u,
+      formatKey: M,
+      localTodos: p,
       newTodo: P,
-      addTodo: A,
-      localParticipants: L,
-      newParticipant: U,
-      addParticipant: w
-    } = Se(k, u), o = () => u("close-popup"), B = () => u("handle-delete", k.eventData.id), N = () => {
-      const D = {
-        ...E.value,
-        todos: c.value,
-        participants: L.value
+      addTodo: B,
+      localParticipants: S,
+      newParticipant: V,
+      addParticipant: W
+    } = ke(w, r), s = () => r("close-popup"), x = () => r("handle-delete", w.eventData.id), Y = () => {
+      const T = {
+        ...c.value,
+        todos: p.value,
+        participants: S.value
       };
-      u("update-event", D), u("update:todos", { todos: c.value, eventId: k.eventData.id }), u("update:participants", { participants: L.value, eventId: k.eventData.id }), u("close-popup");
-    }, x = _(null), y = { x: 0, y: 0 }, O = (D) => {
-      if (!x.value) return;
-      const r = x.value;
-      y.x = D.clientX - r.getBoundingClientRect().left, y.y = D.clientY - r.getBoundingClientRect().top;
-      const S = (h) => {
-        r.style.left = `${h.clientX - y.x}px`, r.style.top = `${h.clientY - y.y}px`, r.style.position = "absolute", r.style.transform = "none";
-      }, b = () => {
-        window.removeEventListener("mousemove", S), window.removeEventListener("mouseup", b);
+      r("update-event", T), r("update:todos", { todos: p.value, eventId: w.eventData.id }), r("update:participants", { participants: S.value, eventId: w.eventData.id }), r("close-popup");
+    }, U = k(null), F = { x: 0, y: 0 }, N = (T) => {
+      if (!U.value) return;
+      const h = U.value;
+      F.x = T.clientX - h.getBoundingClientRect().left, F.y = T.clientY - h.getBoundingClientRect().top;
+      const _ = (g) => {
+        h.style.left = `${g.clientX - F.x}px`, h.style.top = `${g.clientY - F.y}px`, h.style.position = "absolute", h.style.transform = "none";
+      }, f = () => {
+        window.removeEventListener("mousemove", _), window.removeEventListener("mouseup", f);
       };
-      window.addEventListener("mousemove", S), window.addEventListener("mouseup", b);
-    }, j = (D) => {
-      c.value.splice(D, 1), u("update:todos", {
-        todos: [...c.value],
-        eventId: E.value.id
+      window.addEventListener("mousemove", _), window.addEventListener("mouseup", f);
+    }, q = (T) => {
+      p.value.splice(T, 1), r("update:todos", {
+        todos: [...p.value],
+        eventId: c.value.id
       });
-    }, G = (D) => {
-      L.value.splice(D, 1), u("update:participants", {
-        participants: [...L.value],
-        eventId: E.value.id
+    }, j = (T) => {
+      S.value.splice(T, 1), r("update:participants", {
+        participants: [...S.value],
+        eventId: c.value.id
       });
     };
-    return (D, r) => {
-      const S = ge("font-awesome-icon");
-      return f.visible ? (i(), d("div", Te, [
+    return (T, h) => {
+      const _ = he("font-awesome-icon");
+      return y.visible ? (i(), d("div", Se, [
         e("div", {
           class: "popup-content",
           ref_key: "popupRef",
-          ref: x,
-          onMousedown: O
+          ref: U,
+          onMousedown: N
         }, [
-          e("div", Ce, [
+          e("div", Te, [
             e("button", {
               class: "icon-button",
-              onClick: B,
+              onClick: x,
               title: "Delete"
             }, [
-              W(S, { icon: ["fas", "trash"] })
+              z(_, { icon: ["fas", "trash"] })
             ]),
             e("button", {
               class: "icon-button",
-              onClick: o,
+              onClick: s,
               title: "Close"
             }, [
-              W(S, { icon: ["fas", "times"] })
+              z(_, { icon: ["fas", "times"] })
             ])
           ]),
-          e("h2", Ee, v(g(E).title), 1),
-          f.eventData && Object.keys(f.eventData).length ? (i(), d("div", $e, [
-            (i(!0), d(C, null, $(g(z), (b, h) => (i(), d(C, { key: h }, [
-              h !== "title" ? (i(), d("div", Me, [
-                e("label", Pe, v(g(V)(String(h))), 1),
-                F(e("input", {
-                  "onUpdate:modelValue": (q) => g(E)[h] = q,
+          e("h2", Ce, m(L(c).title), 1),
+          y.eventData && Object.keys(y.eventData).length ? (i(), d("div", Ee, [
+            (i(!0), d(C, null, E(L(u), (f, g) => (i(), d(C, { key: g }, [
+              g !== "title" ? (i(), d("div", $e, [
+                e("label", Me, m(L(M)(String(g))), 1),
+                A(e("input", {
+                  "onUpdate:modelValue": (R) => L(c)[g] = R,
                   class: "popup-input",
-                  placeholder: g(V)(String(h))
-                }, null, 8, xe), [
-                  [I, g(E)[h]]
+                  placeholder: L(M)(String(g))
+                }, null, 8, Pe), [
+                  [I, L(c)[g]]
                 ])
               ])) : X("", !0)
             ], 64))), 128))
           ])) : X("", !0),
-          e("div", Fe, [
-            e("label", Ae, v(s.value), 1),
-            e("ul", Ue, [
-              (i(!0), d(C, null, $(g(c), (b, h) => (i(), d("li", { key: h }, [
-                te(v(b) + " ", 1),
+          e("div", xe, [
+            e("label", Fe, m(n.value), 1),
+            e("ul", Ae, [
+              (i(!0), d(C, null, E(L(p), (f, g) => (i(), d("li", { key: g }, [
+                ee(m(f) + " ", 1),
                 e("button", {
-                  onClick: (q) => j(h)
+                  onClick: (R) => q(g)
                 }, [
-                  W(S, { icon: ["fas", "trash"] })
-                ], 8, Be)
+                  z(_, { icon: ["fas", "trash"] })
+                ], 8, Ue)
               ]))), 128))
             ]),
-            e("div", Ve, [
-              F(e("input", {
-                "onUpdate:modelValue": r[0] || (r[0] = (b) => ae(P) ? P.value = b : null),
+            e("div", Be, [
+              A(e("input", {
+                "onUpdate:modelValue": h[0] || (h[0] = (f) => te(P) ? P.value = f : null),
                 placeholder: "New To-do...",
                 class: "popup-input"
               }, null, 512), [
-                [I, g(P)]
+                [I, L(P)]
               ]),
               e("button", {
                 class: "add-inline-button",
-                onClick: r[1] || (r[1] = //@ts-ignore
-                (...b) => g(A) && g(A)(...b))
+                onClick: h[1] || (h[1] = //@ts-ignore
+                (...f) => L(B) && L(B)(...f))
               }, [
-                W(S, { icon: ["fas", "plus"] })
+                z(_, { icon: ["fas", "plus"] })
               ])
             ])
           ]),
-          e("div", We, [
-            e("label", Ie, v(m.value), 1),
+          e("div", Ve, [
+            e("label", We, m(b.value), 1),
             e("ul", ze, [
-              (i(!0), d(C, null, $(g(L), (b, h) => (i(), d("li", { key: h }, [
-                te(v(b) + " ", 1),
+              (i(!0), d(C, null, E(L(S), (f, g) => (i(), d("li", { key: g }, [
+                ee(m(f) + " ", 1),
                 e("button", {
-                  onClick: (q) => G(h)
+                  onClick: (R) => j(g)
                 }, [
-                  W(S, { icon: ["fas", "trash"] })
-                ], 8, Ne)
+                  z(_, { icon: ["fas", "trash"] })
+                ], 8, Ie)
               ]))), 128))
             ]),
-            e("div", Oe, [
-              F(e("input", {
-                "onUpdate:modelValue": r[2] || (r[2] = (b) => ae(U) ? U.value = b : null),
+            e("div", Ne, [
+              A(e("input", {
+                "onUpdate:modelValue": h[2] || (h[2] = (f) => te(V) ? V.value = f : null),
                 placeholder: "Add Participant ...",
                 class: "popup-input"
               }, null, 512), [
-                [I, g(U)]
+                [I, L(V)]
               ]),
               e("button", {
                 class: "add-inline-button",
-                onClick: r[3] || (r[3] = //@ts-ignore
-                (...b) => g(w) && g(w)(...b))
+                onClick: h[3] || (h[3] = //@ts-ignore
+                (...f) => L(W) && L(W)(...f))
               }, [
-                W(S, { icon: ["fas", "user-plus"] })
+                z(_, { icon: ["fas", "user-plus"] })
               ])
             ])
           ]),
           e("div", { class: "popup-footer" }, [
             e("button", {
               class: "save-button",
-              onClick: N
+              onClick: Y
             }, "Speichern")
           ])
         ], 544)
       ])) : X("", !0);
     };
   }
-}), Re = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2050%2050'%20width='50px'%20height='50px'%3e%3cpath%20d='M%2025%202%20C%2012.309295%202%202%2012.309295%202%2025%20C%202%2037.690705%2012.309295%2048%2025%2048%20C%2037.690705%2048%2048%2037.690705%2048%2025%20C%2048%2012.309295%2037.690705%202%2025%202%20z%20M%2025%204%20C%2036.609824%204%2046%2013.390176%2046%2025%20C%2046%2036.609824%2036.609824%2046%2025%2046%20C%2013.390176%2046%204%2036.609824%204%2025%20C%204%2013.390176%2013.390176%204%2025%204%20z%20M%2025%2011%20A%203%203%200%200%200%2022%2014%20A%203%203%200%200%200%2025%2017%20A%203%203%200%200%200%2028%2014%20A%203%203%200%200%200%2025%2011%20z%20M%2021%2021%20L%2021%2023%20L%2022%2023%20L%2023%2023%20L%2023%2036%20L%2022%2036%20L%2021%2036%20L%2021%2038%20L%2022%2038%20L%2023%2038%20L%2027%2038%20L%2028%2038%20L%2029%2038%20L%2029%2036%20L%2028%2036%20L%2027%2036%20L%2027%2021%20L%2026%2021%20L%2022%2021%20L%2021%2021%20z'/%3e%3c/svg%3e", Ye = ["for"], je = { key: 0 }, Ke = ["id", "onUpdate:modelValue"], Xe = ["value"], He = { key: 1 }, Ge = ["id", "onUpdate:modelValue", "type"], Je = { class: "form-group" }, Qe = {
+}), Re = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2050%2050'%20width='50px'%20height='50px'%3e%3cpath%20d='M%2025%202%20C%2012.309295%202%202%2012.309295%202%2025%20C%202%2037.690705%2012.309295%2048%2025%2048%20C%2037.690705%2048%2048%2037.690705%2048%2025%20C%2048%2012.309295%2037.690705%202%2025%202%20z%20M%2025%204%20C%2036.609824%204%2046%2013.390176%2046%2025%20C%2046%2036.609824%2036.609824%2046%2025%2046%20C%2013.390176%2046%204%2036.609824%204%2025%20C%204%2013.390176%2013.390176%204%2025%204%20z%20M%2025%2011%20A%203%203%200%200%200%2022%2014%20A%203%203%200%200%200%2025%2017%20A%203%203%200%200%200%2028%2014%20A%203%203%200%200%200%2025%2011%20z%20M%2021%2021%20L%2021%2023%20L%2022%2023%20L%2023%2023%20L%2023%2036%20L%2022%2036%20L%2021%2036%20L%2021%2038%20L%2022%2038%20L%2023%2038%20L%2027%2038%20L%2028%2038%20L%2029%2038%20L%2029%2036%20L%2028%2036%20L%2027%2036%20L%2027%2021%20L%2026%2021%20L%2022%2021%20L%2021%2021%20z'/%3e%3c/svg%3e", Oe = ["for"], Ye = { key: 0 }, je = ["id", "onUpdate:modelValue"], Ke = ["value"], Xe = { key: 1 }, He = ["id", "onUpdate:modelValue", "type"], Ge = { class: "form-group" }, Je = {
   for: "start",
   class: "form-label"
-}, Ze = { class: "form-group" }, et = {
+}, Qe = { class: "form-group" }, Ze = {
   for: "end",
   class: "form-label"
-}, tt = { class: "form-group" }, at = {
+}, et = { class: "form-group" }, tt = {
   for: "date",
   class: "form-label"
 }, ot = {
   type: "submit",
   class: "submit-button"
-}, nt = { class: "calendar" }, st = { class: "navigation" }, lt = { class: "current-week" }, it = { class: "hours-and-days" }, dt = { class: "hours" }, ut = { class: "weekdays-container" }, rt = { class: "weekdays" }, ct = { class: "days" }, pt = ["onDrop"], vt = ["onDragstart"], mt = ["onClick"], bt = ["src"], ft = /* @__PURE__ */ se({
+}, at = { class: "calendar" }, nt = { class: "navigation" }, st = { class: "current-week" }, lt = { class: "hours-and-days" }, it = { class: "hours" }, dt = { class: "weekdays-container" }, ut = { class: "weekdays" }, rt = { class: "days" }, ct = ["onDrop"], pt = ["onDragstart"], vt = ["onClick"], mt = ["src"], ft = /* @__PURE__ */ ne({
   __name: "ScheduleForm",
   props: {
     schedules: {},
@@ -239,279 +239,298 @@ const Te = {
     popupVisible: { type: Boolean, default: !1 },
     popupEvent: { default: null }
   },
-  emits: [
-    "submit-event",
-    "handle-delete",
-    "update-event",
-    "show-info",
-    "close-popup",
-    "update:todos",
-    "update:participants"
-  ],
-  setup(f, { expose: M, emit: k }) {
-    const s = f, m = k, u = _(!1), E = T(
-      () => s.weekdays || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    ), z = T(() => s.eventTitleColor || "#000"), V = T(() => s.eventTitleSize || "16px"), c = T(() => ({
-      startTimeLabel: s.labelsAndSettings?.startTimeLabel || "Start Time",
-      endTimeLabel: s.labelsAndSettings?.endTimeLabel || "End Time",
-      dateLabel: s.labelsAndSettings?.dateLabel || "Date",
-      submitButtonText: s.labelsAndSettings?.submitButtonText || "Add Entry",
-      calendarWeekLabel: s.labelsAndSettings?.calendarWeekLabel || "CW",
-      todosLabel: s.labelsAndSettings?.todosLabel,
-      participantsLabel: s.labelsAndSettings?.participantsLabel
-    })), P = T(() => s.placeholderSettings || {}), A = _(s.schedules), L = _(s.additionalFields), U = _(Array.from({ length: 24 }, (n, t) => t.toString().padStart(2, "0") + ":00")), w = _({}), o = _({ start: "", end: "", date: "", color: "" }), B = T(() => s.popupVisible), N = T(() => s.popupEvent), x = _(0), y = _(null), O = (n) => {
-      const t = n || o.value, a = {
+  emits: ["submit-event", "handle-delete", "update-event", "show-info", "close-popup", "update:todos", "update:participants"],
+  setup(y, { expose: $, emit: w }) {
+    const n = y, b = w;
+    fe();
+    const r = k(!1), c = k({}), u = k({
+      start: "",
+      end: "",
+      date: "",
+      color: "",
+      title: "",
+      description: ""
+    }), M = k(0), p = k(null), P = k(
+      Array.from({ length: 24 }, (a, t) => t.toString().padStart(2, "0") + ":00")
+    ), B = D(() => n.weekdays), S = D(() => n.eventTitleColor), V = D(() => n.eventTitleSize), W = D(() => n.additionalFields), s = D(() => ({
+      startTimeLabel: n.labelsAndSettings?.startTimeLabel || "Start Time",
+      endTimeLabel: n.labelsAndSettings?.endTimeLabel || "End Time",
+      dateLabel: n.labelsAndSettings?.dateLabel || "Date",
+      submitButtonText: n.labelsAndSettings?.submitButtonText || "Add Entry",
+      calendarWeekLabel: n.labelsAndSettings?.calendarWeekLabel || "CW",
+      todosLabel: n.labelsAndSettings?.todosLabel,
+      participantsLabel: n.labelsAndSettings?.participantsLabel
+    })), x = D(() => n.placeholderSettings || {}), Y = D(() => n.popupVisible), U = D(() => n.popupEvent), F = () => {
+      u.value = {
+        start: "",
+        end: "",
+        date: "",
+        color: "",
+        title: "",
+        description: ""
+      }, n.additionalFields.forEach((a) => {
+        u.value[a.model] = "";
+      });
+    }, N = (a) => {
+      const t = a || u.value, o = {
+        title: t.title,
         start: t.start,
         end: t.end,
         date: t.date,
         info: t.info,
-        color: t.color
+        color: t.color,
+        description: t.description
       };
-      s.additionalFields.forEach((l) => {
-        a[l.model] = t[l.model];
-      }), m("submit-event", a), D(), Object.keys(o.value).forEach((l) => {
-        o.value[l] = "";
-      });
-    }, j = (n) => {
-      m("update-event", n);
-    };
-    ye(() => {
-      !L.value.length || !A.value.length || (w.value = {}, A.value.forEach((n) => {
-        const t = n.date;
-        w.value[t] || (w.value[t] = []), w.value[t].push(n);
-      }));
-    });
-    const D = () => {
-      Object.keys(o.value).forEach((n) => {
-        o.value[n] = "";
-      });
-    }, r = (n) => {
-      const t = /* @__PURE__ */ new Date(), a = t.getDay(), l = n + 1 - a + x.value * 7, p = new Date(t);
-      return p.setDate(t.getDate() + l), p.toISOString().substring(0, 10);
-    }, S = () => {
-      const n = /* @__PURE__ */ new Date(), t = new Date(n.getFullYear(), 0, 1), a = (n.getTime() - t.getTime()) / 864e5 + x.value * 7;
-      return Math.ceil((a + t.getDay() + 1) / 7);
-    }, b = () => x.value -= 1, h = () => x.value += 1, q = (n) => {
-      const t = R(n.start), a = R(n.end), l = t.totalMinutes * 40 / 60, p = (a.totalMinutes - t.totalMinutes) * 40 / 60;
+      n.additionalFields.forEach((l) => {
+        o[l.model] = t[l.model];
+      }), b("submit-event", o), F();
+    }, q = (a) => {
+      const t = /* @__PURE__ */ new Date(), o = t.getDay(), l = a + 1 - o + M.value * 7, v = new Date(t);
+      return v.setDate(t.getDate() + l), v.toISOString().substring(0, 10);
+    }, j = () => {
+      const a = /* @__PURE__ */ new Date(), t = new Date(a.getFullYear(), 0, 1), o = (a.getTime() - t.getTime()) / 864e5 + M.value * 7;
+      return Math.ceil((o + t.getDay() + 1) / 7);
+    }, T = () => {
+      M.value -= 1;
+    }, h = () => {
+      M.value += 1;
+    }, _ = (a) => {
+      const [t, o] = a.split(":").map(Number);
+      return { h: t, m: o, totalMinutes: t * 60 + o };
+    }, f = (a) => {
+      const t = _(a.start), o = _(a.end), l = t.totalMinutes * 40 / 60, v = (o.totalMinutes - t.totalMinutes) * 40 / 60;
       return {
-        backgroundColor: n.color || "var(--calendar-primary-color)",
+        backgroundColor: a.color || "var(--calendar-primary-color)",
         top: `${l}px`,
-        height: `${p}px`,
+        height: `${v}px`,
         position: "absolute",
         left: 0,
         right: 0,
         zIndex: 1,
         borderRadius: "var(--event-border-radius)"
       };
-    }, R = (n) => {
-      const [t, a] = n.split(":").map(Number);
-      return { h: t, m: a, totalMinutes: t * 60 + a };
-    }, le = (n, t) => R(t).totalMinutes - R(n).totalMinutes, ie = (n, t) => {
-      const a = R(n).totalMinutes + t, l = Math.floor(a / 60).toString().padStart(2, "0"), p = (a % 60).toString().padStart(2, "0");
-      return `${l}:${p}`;
-    }, de = (n, t) => {
-      y.value = t;
-    }, ue = () => {
-      y.value = null;
-    }, re = (n, t) => {
-      if (!y.value) return;
-      const l = n.currentTarget.getBoundingClientRect(), p = n.clientY - l.top, J = 60 / 40, Y = Math.round(p * J / 15) * 15, Q = `${String(Math.floor(Y / 60)).padStart(2, "0")}:${String(Y % 60).padStart(2, "0")}`, me = le(y.value.start, y.value.end), be = ie(Q, me), K = r(t), Z = {
-        ...y.value,
-        start: Q,
-        end: be,
+    }, g = (a, t) => _(t).totalMinutes - _(a).totalMinutes, R = (a, t) => {
+      const o = _(a).totalMinutes + t, l = Math.floor(o / 60).toString().padStart(2, "0"), v = (o % 60).toString().padStart(2, "0");
+      return `${l}:${v}`;
+    }, se = (a, t) => {
+      p.value = t;
+    }, le = () => {
+      p.value = null;
+    }, ie = (a, t) => {
+      if (!p.value) return;
+      const l = a.currentTarget.getBoundingClientRect(), v = a.clientY - l.top, O = 60 / 40, G = Math.round(v * O / 15) * 15, J = `${String(Math.floor(G / 60)).padStart(2, "0")}:${String(G % 60).padStart(2, "0")}`, pe = g(p.value.start, p.value.end), ve = R(J, pe), K = q(t), Q = {
+        ...p.value,
+        start: J,
+        end: ve,
         date: K
       };
-      m("update-event", Z);
-      const ee = y.value.date;
-      w.value[ee] = w.value[ee]?.filter((he) => he.id !== y.value.id) || [], w.value[K] = [...w.value[K] || [], Z], y.value = null;
-    }, ce = (n) => {
-      m("show-info", n);
-    }, pe = () => {
-      m("close-popup");
-    }, ve = (n) => m("handle-delete", n);
-    return _e(() => {
-      s.additionalFields.forEach((t) => {
-        o.value[t.model] = "";
-      }), window.matchMedia?.("(prefers-color-scheme: dark)")?.matches && (u.value = !0);
-    }), M({
-      newEvent: o,
-      addEvent: O,
-      resetForm: D
-    }), (n, t) => (i(), d("div", {
-      class: Le(["calendar-theme", f.customClass, { dark: u.value }]),
-      style: H(f.customStyles)
+      b("update-event", Q);
+      const Z = p.value.date;
+      c.value[Z] = c.value[Z]?.filter((me) => me.id !== p.value.id) || [], c.value[K] = [...c.value[K] || [], Q], p.value = null;
+    }, de = (a) => {
+      b("show-info", a);
+    }, ue = () => {
+      b("close-popup");
+    }, re = (a) => {
+      b("handle-delete", a);
+    }, ce = (a) => {
+      b("update-event", a);
+    };
+    return ge(() => {
+      if (!n.schedules.length) {
+        c.value = {};
+        return;
+      }
+      c.value = {}, n.schedules.forEach((a) => {
+        const t = a.date;
+        c.value[t] || (c.value[t] = []), c.value[t].push(a);
+      });
+    }), ye(() => {
+      n.additionalFields.forEach((t) => {
+        u.value[t.model] = "";
+      }), window.matchMedia?.("(prefers-color-scheme: dark)")?.matches && (r.value = !0);
+    }), $({
+      newEvent: u,
+      addEvent: N,
+      resetForm: F
+    }), (a, t) => (i(), d("div", {
+      class: _e(["calendar-theme", y.customClass, { dark: r.value }]),
+      style: H(y.customStyles)
     }, [
-      oe(n.$slots, "form", {
-        newEvent: o.value,
-        addEvent: O,
-        additionalFields: L.value,
-        labels: c.value,
-        resetForm: D
+      oe(a.$slots, "form", {
+        newEvent: u.value,
+        addEvent: N,
+        additionalFields: W.value,
+        labels: s.value,
+        resetForm: F
       }, () => [
         e("form", {
           class: "form-container",
-          onSubmit: ne(O, ["prevent"])
+          onSubmit: ae(N, ["prevent"])
         }, [
-          (i(!0), d(C, null, $(L.value, (a) => (i(), d("div", {
-            key: a.id,
+          (i(!0), d(C, null, E(W.value, (o) => (i(), d("div", {
+            key: o.id,
             class: "form-group"
           }, [
             e("label", {
-              for: a.id,
+              for: o.id,
               class: "form-label"
-            }, v(a.label) + ":", 9, Ye),
-            a.type === "select" ? (i(), d("div", je, [
-              F(e("select", {
-                id: a.id,
-                "onUpdate:modelValue": (l) => o.value[a.model] = l,
+            }, m(o.label) + ":", 9, Oe),
+            o.type === "select" ? (i(), d("div", Ye, [
+              A(e("select", {
+                id: o.id,
+                "onUpdate:modelValue": (l) => u.value[o.model] = l,
                 required: "",
                 class: "form-select"
               }, [
-                (i(!0), d(C, null, $(a.options, (l) => (i(), d("option", {
+                (i(!0), d(C, null, E(o.options, (l) => (i(), d("option", {
                   key: l.id,
                   value: l
-                }, v(l.name || `${l.first_name} ${l.last_name}`), 9, Xe))), 128))
-              ], 8, Ke), [
-                [we, o.value[a.model]]
+                }, m(l.name || `${l.first_name} ${l.last_name}`), 9, Ke))), 128))
+              ], 8, je), [
+                [Le, u.value[o.model]]
               ])
-            ])) : (i(), d("div", He, [
-              F(e("input", {
-                id: a.id,
-                "onUpdate:modelValue": (l) => o.value[a.model] = l,
-                type: a.type,
+            ])) : (i(), d("div", Xe, [
+              A(e("input", {
+                id: o.id,
+                "onUpdate:modelValue": (l) => u.value[o.model] = l,
+                type: o.type,
                 required: "",
                 class: "form-input"
-              }, null, 8, Ge), [
-                [De, o.value[a.model]]
+              }, null, 8, He), [
+                [we, u.value[o.model]]
               ])
             ]))
           ]))), 128)),
-          e("div", Je, [
-            e("label", Qe, v(c.value.startTimeLabel) + ":", 1),
-            F(e("input", {
+          e("div", Ge, [
+            e("label", Je, m(s.value.startTimeLabel) + ":", 1),
+            A(e("input", {
               id: "start",
-              "onUpdate:modelValue": t[0] || (t[0] = (a) => o.value.start = a),
+              "onUpdate:modelValue": t[0] || (t[0] = (o) => u.value.start = o),
               type: "time",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [I, o.value.start]
+              [I, u.value.start]
             ])
           ]),
-          e("div", Ze, [
-            e("label", et, v(c.value.endTimeLabel) + ":", 1),
-            F(e("input", {
+          e("div", Qe, [
+            e("label", Ze, m(s.value.endTimeLabel) + ":", 1),
+            A(e("input", {
               id: "end",
-              "onUpdate:modelValue": t[1] || (t[1] = (a) => o.value.end = a),
+              "onUpdate:modelValue": t[1] || (t[1] = (o) => u.value.end = o),
               type: "time",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [I, o.value.end]
+              [I, u.value.end]
             ])
           ]),
-          e("div", tt, [
-            e("label", at, v(c.value.dateLabel) + ":", 1),
-            F(e("input", {
+          e("div", et, [
+            e("label", tt, m(s.value.dateLabel) + ":", 1),
+            A(e("input", {
               id: "date",
-              "onUpdate:modelValue": t[2] || (t[2] = (a) => o.value.date = a),
+              "onUpdate:modelValue": t[2] || (t[2] = (o) => u.value.date = o),
               type: "date",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [I, o.value.date]
+              [I, u.value.date]
             ])
           ]),
-          e("button", ot, v(c.value.submitButtonText), 1)
+          e("button", ot, m(s.value.submitButtonText), 1)
         ], 32)
       ]),
-      e("div", nt, [
-        e("div", st, [
+      e("div", at, [
+        e("div", nt, [
           e("button", {
+            type: "button",
             class: "arrow-button",
-            onClick: b
+            onClick: T
           }, "<"),
-          e("span", lt, v(c.value.calendarWeekLabel) + " " + v(S()), 1),
+          e("span", st, m(s.value.calendarWeekLabel) + " " + m(j()), 1),
           e("button", {
+            type: "button",
             class: "arrow-button",
             onClick: h
           }, ">")
         ]),
-        e("div", it, [
-          e("div", dt, [
+        e("div", lt, [
+          e("div", it, [
             t[6] || (t[6] = e("div", { class: "empty-slot" }, null, -1)),
-            (i(!0), d(C, null, $(U.value, (a) => (i(), d("div", {
-              key: a,
+            (i(!0), d(C, null, E(P.value, (o) => (i(), d("div", {
+              key: o,
               class: "hour"
-            }, v(a), 1))), 128))
+            }, m(o), 1))), 128))
           ]),
-          e("div", ut, [
-            e("ul", rt, [
-              (i(!0), d(C, null, $(E.value, (a, l) => (i(), d("li", {
+          e("div", dt, [
+            e("ul", ut, [
+              (i(!0), d(C, null, E(B.value, (o, l) => (i(), d("li", {
                 key: l,
                 class: "weekday"
               }, [
-                e("span", null, v(a), 1),
-                e("span", null, v(r(l)), 1)
+                e("span", null, m(o), 1),
+                e("span", null, m(q(l)), 1)
               ]))), 128))
             ]),
-            e("div", ct, [
-              (i(), d(C, null, $(7, (a, l) => e("div", {
+            e("div", rt, [
+              (i(), d(C, null, E(7, (o, l) => e("div", {
                 key: l,
                 class: "day",
-                onDragover: t[3] || (t[3] = ne(() => {
+                onDragover: t[3] || (t[3] = ae(() => {
                 }, ["prevent"])),
-                onDrop: (p) => re(p, l)
+                onDrop: (v) => ie(v, l)
               }, [
-                (i(!0), d(C, null, $(U.value, (p) => (i(), d("div", {
-                  key: p,
+                (i(!0), d(C, null, E(P.value, (v) => (i(), d("div", {
+                  key: v,
                   class: "hour"
                 }))), 128)),
-                (i(!0), d(C, null, $(w.value[r(l)] || [], (p, J) => (i(), d("div", {
-                  key: p.id,
+                (i(!0), d(C, null, E(c.value[q(l)] || [], (v) => (i(), d("div", {
+                  key: v.id,
                   class: "event",
-                  style: H(q(p)),
+                  style: H(f(v)),
                   draggable: "true",
-                  onDragstart: (Y) => de(Y, p),
-                  onDragend: ue
+                  onDragstart: (O) => se(O, v),
+                  onDragend: le
                 }, [
                   e("span", {
-                    style: H({ color: z.value, fontSize: V.value })
-                  }, v(p.title), 5),
+                    style: H({ color: S.value, fontSize: V.value })
+                  }, m(v.title), 5),
                   t[7] || (t[7] = e("br", null, null, -1)),
                   e("button", {
+                    type: "button",
                     class: "info-button",
-                    onClick: (Y) => ce(p)
+                    onClick: (O) => de(v)
                   }, [
                     e("img", {
-                      src: g(Re),
+                      src: L(Re),
                       alt: "info",
                       class: "small-logo"
-                    }, null, 8, bt)
-                  ], 8, mt)
-                ], 44, vt))), 128))
-              ], 40, pt)), 64))
+                    }, null, 8, mt)
+                  ], 8, vt)
+                ], 44, pt))), 128))
+              ], 40, ct)), 64))
             ])
           ])
         ])
       ]),
-      n.$slots["popup-calendar"] ? oe(n.$slots, "popup-calendar", { key: 0 }) : (i(), ke(qe, {
+      a.$slots["popup-calendar"] ? oe(a.$slots, "popup-calendar", { key: 0 }) : (i(), De(qe, {
         key: 1,
-        visible: B.value,
-        eventData: N.value,
-        popupFields: f.popupFields || [],
+        visible: Y.value,
+        eventData: U.value,
+        popupFields: y.popupFields || [],
         closeButtonText: "Close",
-        todosLabel: c.value.todosLabel || "To-Do",
-        participantsLabel: c.value.participantsLabel || "Teammates",
-        todos: N.value?.todos || [],
-        participants: N.value?.participants || [],
-        todoPlaceholder: P.value.todo || "New To-do...",
-        participantPlaceholder: P.value.participant || "Add Participant...",
-        "onUpdate:todos": t[4] || (t[4] = (a) => m("update:todos", a)),
-        "onUpdate:participants": t[5] || (t[5] = (a) => m("update:participants", a)),
-        onClosePopup: pe,
-        onHandleDelete: ve,
-        onUpdateEvent: j
+        todosLabel: s.value.todosLabel || "To-Do",
+        participantsLabel: s.value.participantsLabel || "Teammates",
+        todos: U.value?.todos || [],
+        participants: U.value?.participants || [],
+        todoPlaceholder: x.value.todo || "New To-do...",
+        participantPlaceholder: x.value.participant || "Add Participant...",
+        "onUpdate:todos": t[4] || (t[4] = (o) => b("update:todos", o)),
+        "onUpdate:participants": t[5] || (t[5] = (o) => b("update:participants", o)),
+        onClosePopup: ue,
+        onHandleDelete: re,
+        onUpdateEvent: ce
       }, null, 8, ["visible", "eventData", "popupFields", "todosLabel", "participantsLabel", "todos", "participants", "todoPlaceholder", "participantPlaceholder"]))
     ], 6));
   }
