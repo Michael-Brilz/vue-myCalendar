@@ -1,219 +1,607 @@
-
 # vue3-mycalendar
 
-vue3-mycalendar is a powerful and customisable calendar component for Vue 3 that provides an easy way to view and manage calendar events and supports custom fields and customisable labels and styles.
+A powerful and customizable calendar component for Vue 3 with drag & drop support, custom forms, popups, and full theming capabilities.
+
+[![npm version](https://img.shields.io/npm/v/vue3-mycalendar.svg)](https://www.npmjs.com/package/vue3-mycalendar)
+[![license](https://img.shields.io/npm/l/vue3-mycalendar.svg)](https://github.com/yourusername/vue3-mycalendar/blob/main/LICENSE)
+
+## ✨ Features
+
+- 📅 Weekly calendar view with hour grid
+- 🖱️ Drag & drop events between days and times
+- 📝 Customizable event forms via **Scoped Slots**
+- 🎨 Full theming with CSS variables
+- 🌙 Built-in Light & Dark mode
+- 📋 Event popups with todos & participants
+- 🔧 TypeScript support
 
 ## Installation
 
-Install with npm
-
 ```bash
-  npm install vue3-mycalendar
+npm install vue3-mycalendar
 ```
 
-## Quick Start:
+## Quick Start
 
-```typescript
+```vue
 <template>
-    <ScheduleForm 
-      :schedules="schedules" 
-      :additional-fields="additionalFields" 
-      custom-class="customize-schedule-form"
-      :labels-and-settings="labelsAndSettings"
-      :popup-fields="popupFields"
-      @handleDelete="handleEventDelete"
-    />
+  <ScheduleForm 
+    :schedules="schedules" 
+    :additional-fields="additionalFields" 
+    custom-class="my-calendar"
+    :labels-and-settings="labelsAndSettings"
+    :popup-fields="popupFields"
+    @submit-event="handleNewEvent"
+    @handle-delete="handleDeleteEvent"
+    @update-event="handleUpdateEvent"
+  />
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue';
-import ScheduleForm from 'vue3-mycalendar';
+import { ScheduleForm } from 'vue3-mycalendar';
+import 'vue3-mycalendar/dist/style.css';
 
 const schedules = ref([
-    // Array containing the list of events to be displayed on the calendar
-  { id: 1, title: 'Meeting', date: '2024-10-01', start: '09:00', end: '10:00', color: '#ff0000', teacher: 'Malika Heaney', room: 'Room 1' },
-  { id: 2, title: 'Workshop', date: '2024-10-02', start: '13:00', end: '15:00', color: '#ff0000', teacher: 'John Doe', room: 'Room 2' },
-]);
-
-const popupFields = ref([
-  // Array defining which fields should be displayed in the event details popup
-  'title', 'date', 'start', 'end', 'teacher', 'room'
+  { 
+    id: 1, 
+    title: 'Meeting', 
+    date: '2025-07-04', 
+    start: '09:00', 
+    end: '10:00', 
+    color: '#e2Be33',
+    teacher: 'Malika Heaney', 
+    room: 'Room 1',
+    todos: ['Prepare agenda', 'Print documents'],
+    participants: ['Malika', 'Jonas']
+  },
+  { 
+    id: 2, 
+    title: 'Workshop', 
+    date: '2025-07-04', 
+    start: '13:00', 
+    end: '15:00', 
+    color: '#33C3FF',
+    teacher: 'John Doe', 
+    room: 'Room 2'
+  },
 ]);
 
 const additionalFields = ref([
-    // Array of additional fields to be included in the event form for customization
+  { id: 'title', label: 'Title', type: 'text', model: 'title' },
   { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
-  { id: 'room', label: 'Room', type: 'select', model: 'room', options: [{ id: 1, name: 'Room 1' }, { id: 2, name: 'Room 2' }] },
+  { 
+    id: 'room', 
+    label: 'Room', 
+    type: 'select', 
+    model: 'room', 
+    options: [
+      { id: 1, name: 'Room 1' }, 
+      { id: 2, name: 'Room 2' }
+    ] 
+  },
 ]);
 
+const popupFields = ref(['title', 'date', 'start', 'end', 'teacher', 'room']);
+
 const labelsAndSettings = computed(() => ({
-    // Object containing custom labels and settings for the calendar component
-  startTimeLabel: 'Start Time',    
-  endTimeLabel: 'End Time',        
-  dateLabel: 'Date',               
-  submitButtonText: 'Add Event',   
-  calendarWeekLabel: 'Week',       
+  startTimeLabel: 'Start Time',
+  endTimeLabel: 'End Time',
+  dateLabel: 'Date',
+  submitButtonText: 'Add Event',
+  calendarWeekLabel: 'Week',
+  todosLabel: 'To-Do',
+  participantsLabel: 'Participants',
 }));
 
-// Handle the delete event action
-const handleEventDelete = (id) => {
+const handleNewEvent = (event) => {
+  const newId = Math.max(...schedules.value.map(e => e.id), 0) + 1;
+  schedules.value.push({ ...event, id: newId });
+};
+
+const handleDeleteEvent = (id) => {
   schedules.value = schedules.value.filter(event => event.id !== id);
-  console.log(`Event with ID ${id} deleted successfully`);
+};
+
+const handleUpdateEvent = (updatedEvent) => {
+  const index = schedules.value.findIndex(e => e.id === updatedEvent.id);
+  if (index !== -1) {
+    schedules.value[index] = updatedEvent;
+  }
 };
 </script>
 
-<style scoped lang="scss">
-.customize-schedule-form {
-  --form-bg-color: #F2F2F2;
-  --button-bg-color: #009688;
-  --label-color: #123456;
+<style>
+.my-calendar {
+  --form-bg-color: #f8fafc;
+  --button-bg-color: #3b82f6;
+  --label-color: #334155;
 }
 </style>
 ```
 
+---
 
-## Props
+## 🎨 Custom Form Slot
 
-| Prop              | Typ    | Description                                                                                          |
-|-------------------|--------|------------------------------------------------------------------------------------------------------|
-| schedules         |   Array     | A list of events that are displayed in the calendar.                                                 |
-| additionalFields  |   Array     | A list of additional fields for the event form.                                                      |
-| customClass       |   String    | A custom CSS class to customise the component layout.                                                |
-| customStyles      |   Record<string, any>    | Inline-Styles für das Root-Element der Komponente.                                                   |
-| weekdays       |   string[]    | Custom weekday names.                                                                                |
-| labelsAndSettings |   Object    | An object for customising the labels and text settings of the calendar component.                    |
-| popupFields       |   Array     | An array of fields to be displayed in the popup for event details, if the default Popup would be use |
-| eventTitleColor       |   string     | Color for the event title text.                                                                      |
-| eventTitleSize       |   string     | Font size for the event title.                                                                       |
-| popupVisible       |   boolean    | Controlled: show/hide popup from the parent.                                                         |
-| popupEvent       |   EventInfo | null   | Controlled: current event shown in the popup.         |
-| placeholderSettings       |   { todo?: string; participant?: string }   | Custom placeholder texts inside the popup.        |
+Replace the default form with your own design using the `form` slot. You get full access to the internal state and methods via **Scoped Slot Props**.
 
+### Slot Props
 
+| Prop | Type | Description |
+|------|------|-------------|
+| `newEvent` | `Ref<Partial<EventInfo>>` | Reactive event object for v-model binding |
+| `addEvent` | `(event?: Partial<EventInfo>) => void` | Submit function to add the event |
+| `additionalFields` | `Field[]` | Configured additional fields array |
+| `labels` | `LabelsAndSettings` | All label texts and settings |
+| `resetForm` | `() => void` | Reset form to initial state |
 
-## Emitted Events
+### Example: Custom Styled Form
 
-| Event Name        | Payload               | Description                                               |
-| ------------------|-----------------------| ----------------------------------------------------------|
-| submit-event       | EventInfo             | Triggered when a new event is added via the form.         |
-| handle-delete      | EventInfo             | Is triggered when an event is deleted via the popup in the default popup.         |
-| update-event      | EventInfo             | Fired when an event is updated (drag & drop or editing in the popup)       |
-| show-info      | EventInfo             | Fired when the user opens event details.       |
-| close-popup     |              | Fired when the popup is closed.       |
-| update:todos     |    { todos: string[]; eventId: number }          | Fired when To-Dos are changed in the popup.      |
-| update:participants    |    { participants: string[]; eventId: number }          | Fired when participants are changed in the popup.      |
-
- ## Slots
-
- The `popup-calendar` slot provides a way to define your custom popup design for viewing and interacting with event details. This slot is especially useful if you want to personalize the popup display with additional data, styles, or actions.
-
-| Name              | Parameters                  | Description                                               |
-| ------------------|-----------------------| ----------------------------------------------------------|
-| default           | None                  | Custom content template for the default slot.             |
-| popup-calendar    | `Number | String`     | Triggered when an event is deleted via the popup.         |
-
-
- ## Required Fields in schedules
-
-Each event object within the schedules array must include the following standard fields:
-
-| Field             | Typ    | Description                                             |
-| ------------------|--------| --------------------------------------------------------|
-| id        |   Number     | A unique identifier for the event.                        |
-| title     |    String    | The title or name of the event.                           |
-| date      |    String    | The date of the event (format: YYYY-MM-DD).               |
-| start     |    String    | The start time of the event (format: HH:MM).              |
-| end       |    String    | The end time of the event (format: HH:MM).                |
-| color     |   String     |A required background color for the event (e.g., #a4d8ff). |
-
-## Styling
-
-You can style the calendar with CSS variables and switch Light/Dark manually.
-
-1) Style with CSS variables (per instance)
-
-Add a custom class via custom-class and override variables:
-
-`<ScheduleForm custom-class="my-calendar" ... />`
-
-```css
-/* Scoped or global */
-.my-calendar {
---form-bg-color: #f5f7fa;
---label-color: #334155;
---button-bg-color: #10b981;
---button-color: #111827;
-/* more: --input-bg-color, --calendar-primary-color, --event-border-radius, … */
-}
-```
-
-```
-Common variables you can override:
---form-bg-color, --label-color, --input-bg-color, --input-color,
---button-bg-color, --button-hover-bg-color, --button-color,
---calendar-primary-color, --grid-border-color, --event-border-radius.
-```
-
-2) Dark & Light mode (manual)
-
-There are two ways. Use one or combine them.
-
-A) Per component (recommended for isolated theming)
-Add dark next to your custom class:
-
-`<ScheduleForm custom-class="my-calendar dark" ... />`
-
-The component ships with built-in dark overrides (e.g. high-contrast text, #121212 background, #D2F7D8 accents).
-Remove dark to go back to Light.
-
-B) Global page theme (affects the whole site)
-Toggle the dark class on <html>:
-
-```typescript
-document.documentElement.classList.add('dark')    // Dark
-document.documentElement.classList.remove('dark') // Light
-```
-
-3) Minimal toggle example
-
-```typescript
-<script setup>
-import { ref, computed, onMounted } from 'vue'
-const isDark = ref(false)
-
-function syncRoot() {
-  document.documentElement.classList.toggle('dark', isDark.value) // optional global
-}
-function setLight() { isDark.value = false; syncRoot() }
-function setDark()  { isDark.value = true;  syncRoot() }
-
-onMounted(syncRoot)
-
-const scheduleFormClass = computed(() =>
-  isDark.value ? 'my-calendar dark' : 'my-calendar'
-)
-</script>
-
+```vue
 <template>
-  <button @click="setLight">Light</button>
-  <button @click="setDark">Dark</button>
+  <ScheduleForm 
+    :schedules="schedules" 
+    :additional-fields="additionalFields"
+    @submit-event="handleNewEvent"
+  >
+    <template #form="{ newEvent, addEvent, labels, resetForm }">
+      <div class="custom-form">
+        <h3>📅 Create New Event</h3>
+        
+        <div class="form-grid">
+          <input 
+            v-model="newEvent.title" 
+            type="text" 
+            placeholder="Event title..."
+            class="input-field"
+          />
+          
+          <input 
+            v-model="newEvent.date" 
+            type="date"
+            class="input-field"
+          />
+          
+          <div class="time-row">
+            <input v-model="newEvent.start" type="time" class="input-field" />
+            <span>to</span>
+            <input v-model="newEvent.end" type="time" class="input-field" />
+          </div>
+          
+          <select v-model="newEvent.room" class="input-field">
+            <option value="">Select room...</option>
+            <option value="Room 1">Room 1</option>
+            <option value="Room 2">Room 2</option>
+          </select>
+          
+          <input 
+            v-model="newEvent.color" 
+            type="color" 
+            class="color-picker"
+          />
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" @click="resetForm" class="btn-secondary">
+            Reset
+          </button>
+          <button type="button" @click="addEvent()" class="btn-primary">
+            {{ labels.submitButtonText }}
+          </button>
+        </div>
+      </div>
+    </template>
+  </ScheduleForm>
+</template>
 
-<ScheduleForm :custom-class="scheduleFormClass" ... />
+<style scoped>
+.custom-form {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 24px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.custom-form h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.25rem;
+}
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.input-field {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.color-picker {
+  width: 60px;
+  height: 40px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.btn-secondary {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary {
+  flex: 1;
+  padding: 12px 24px;
+  background: white;
+  border: none;
+  border-radius: 8px;
+  color: #764ba2;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+}
+</style>
+```
+
+### Example: Minimal Form (Only Required Fields)
+
+```vue
+<template>
+  <ScheduleForm :schedules="schedules" :additional-fields="[]">
+    <template #form="{ newEvent, addEvent }">
+      <div class="minimal-form">
+        <input v-model="newEvent.title" placeholder="Title" />
+        <input v-model="newEvent.date" type="date" />
+        <input v-model="newEvent.start" type="time" />
+        <input v-model="newEvent.end" type="time" />
+        <button @click="addEvent()">Add</button>
+      </div>
+    </template>
+  </ScheduleForm>
 </template>
 ```
 
-## Screenshots
+### Example: No Form (Calendar Only)
 
-![App Screenshot](https://i.postimg.cc/PJ7SrJr6/Bildschirmfoto-2025-08-18-um-19-11-38.png)
+```vue
+<template>
+  <ScheduleForm :schedules="schedules" :additional-fields="[]">
+    <!-- Empty slot removes the form completely -->
+    <template #form></template>
+  </ScheduleForm>
+</template>
+```
 
+---
 
-## Upcoming Features
-This project is actively maintained, and I plan to add exciting new features in the future.
-Stay tuned for regular updates and feature releases!
+## 🪟 Custom Popup Slot
 
-## 🚀 About Me
-I am a motivated junior developer looking to grow through hands-on experience in various projects. I work as a full-stack developer in the cloud department of a cybersecurity product vendor, where I am dedicated to developing secure and robust applications. My goal is to continuously expand my skills and make a significant contribution to the tech industry.
+Customize the event details popup with the `popup-calendar` slot.
 
-## License
+```vue
+<template>
+  <ScheduleForm 
+    :schedules="schedules"
+    :additional-fields="additionalFields"
+    :popup-visible="isPopupVisible"
+    :popup-event="selectedEvent"
+    @show-info="openPopup"
+    @close-popup="closePopup"
+  >
+    <template #popup-calendar>
+      <div v-if="isPopupVisible && selectedEvent" class="my-popup-overlay">
+        <div class="my-popup">
+          <h2>{{ selectedEvent.title }}</h2>
+          <p>📅 {{ selectedEvent.date }}</p>
+          <p>🕐 {{ selectedEvent.start }} - {{ selectedEvent.end }}</p>
+          <p>📍 {{ selectedEvent.room }}</p>
+          
+          <button @click="closePopup">Close</button>
+        </div>
+      </div>
+    </template>
+  </ScheduleForm>
+</template>
+
+<script setup>
+const isPopupVisible = ref(false);
+const selectedEvent = ref(null);
+
+const openPopup = (event) => {
+  selectedEvent.value = event;
+  isPopupVisible.value = true;
+};
+
+const closePopup = () => {
+  isPopupVisible.value = false;
+  selectedEvent.value = null;
+};
+</script>
+```
+
+---
+
+## 📋 Props
+
+### Required Props
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `schedules` | `EventInfo[]` | Array of events to display on the calendar |
+| `additionalFields` | `Field[]` | Additional fields for the event form |
+
+### Optional Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `customClass` | `string` | `''` | Custom CSS class for styling |
+| `customStyles` | `Record<string, any>` | `{}` | Inline styles for the root element |
+| `weekdays` | `string[]` | `['Monday', ...]` | Custom weekday names |
+| `eventTitleColor` | `string` | `'#000'` | Event title text color |
+| `eventTitleSize` | `string` | `'16px'` | Event title font size |
+| `popupFields` | `string[]` | `[]` | Fields to show in the default popup |
+| `labelsAndSettings` | `LabelsAndSettings` | See below | Labels and text customization |
+| `placeholderSettings` | `object` | `{}` | Placeholder texts for popup inputs |
+| `popupVisible` | `boolean` | `false` | Control popup visibility externally |
+| `popupEvent` | `EventInfo \| null` | `null` | Current event for the popup |
+
+### Labels and Settings
+
+```typescript
+interface LabelsAndSettings {
+  startTimeLabel?: string;      // Default: 'Start Time'
+  endTimeLabel?: string;        // Default: 'End Time'
+  dateLabel?: string;           // Default: 'Date'
+  submitButtonText?: string;    // Default: 'Add Entry'
+  calendarWeekLabel?: string;   // Default: 'CW'
+  todosLabel?: string;          // Default: 'To-Do'
+  participantsLabel?: string;   // Default: 'Teammates'
+}
+```
+
+---
+
+## 📡 Events
+
+| Event | Payload | Description |
+|-------|---------|-------------|
+| `submit-event` | `EventInfo` | New event submitted via form |
+| `update-event` | `EventInfo` | Event updated (drag & drop or edit) |
+| `handle-delete` | `number` | Event ID to delete |
+| `show-info` | `EventInfo` | Event details requested |
+| `close-popup` | – | Popup closed |
+| `update:todos` | `{ todos: string[], eventId: number }` | Todos changed |
+| `update:participants` | `{ participants: string[], eventId: number }` | Participants changed |
+
+---
+
+## 🎭 Slots
+
+| Slot | Scoped Props | Description |
+|------|--------------|-------------|
+| `form` | `{ newEvent, addEvent, additionalFields, labels, resetForm }` | Custom event form |
+| `popup-calendar` | – | Custom popup for event details |
+
+---
+
+## 📊 Type Definitions
+
+### EventInfo
+
+```typescript
+interface EventInfo {
+  id: number;
+  title: string;
+  date: string;           // Format: 'YYYY-MM-DD'
+  start: string;          // Format: 'HH:MM'
+  end: string;            // Format: 'HH:MM'
+  color: string;          // Hex color, e.g. '#3b82f6'
+  info?: string;
+  todos?: string[];
+  participants?: string[];
+  [key: string]: any;     // Additional custom fields
+}
+```
+
+### Field
+
+```typescript
+interface Field {
+  id: string;
+  label: string;
+  type: 'text' | 'select' | 'date' | 'time' | 'number';
+  model: string;
+  options?: { id: number | string; name: string }[];
+}
+```
+
+---
+
+## 🎨 Styling
+
+### CSS Variables
+
+Override these variables via `customClass`:
+
+```vue
+<ScheduleForm custom-class="my-calendar" ... />
+```
+
+```css
+.my-calendar {
+  /* Form */
+  --form-bg-color: #ffffff;
+  --form-padding: 1rem;
+  --form-border-radius: 8px;
+  --form-border: 1px solid #ccc;
+  
+  /* Labels */
+  --label-color: #333333;
+  --label-font-weight: bold;
+  
+  /* Inputs */
+  --input-height: 40px;
+  --input-padding: 0.5rem;
+  --input-font-size: 1rem;
+  --input-border: 1px solid #ccc;
+  --input-border-radius: 6px;
+  --input-bg-color: #ffffff;
+  --input-color: #000000;
+  
+  /* Buttons */
+  --button-bg-color: #007bff;
+  --button-hover-bg-color: #0056b3;
+  --button-color: #ffffff;
+  --button-padding: 0.6rem 1rem;
+  --button-border-radius: 6px;
+  
+  /* Calendar */
+  --calendar-primary-color: #a4d8ff;
+  --grid-border-color: #cccccc;
+  --event-border-radius: 8px;
+  
+  /* Navigation */
+  --arrow-button-bg: #007bff;
+  --arrow-button-color: #ffffff;
+  --current-week-color: #000000;
+  
+  /* Popup */
+  --popup-bg: #ffffff;
+  --popup-overlay-bg: rgba(0, 0, 0, 0.5);
+  --popup-border-radius: 5px;
+  
+  /* Danger */
+  --danger-bg: #e53e3e;
+  --danger-text: #ffffff;
+}
+```
+
+### Dark Mode
+
+**Option A: Per Component**
+
+```vue
+<ScheduleForm :custom-class="isDark ? 'my-calendar dark' : 'my-calendar'" ... />
+```
+
+**Option B: Global (affects entire page)**
+
+```typescript
+// Enable dark mode
+document.documentElement.classList.add('dark');
+
+// Disable dark mode
+document.documentElement.classList.remove('dark');
+```
+
+### Theme Toggle Example
+
+```vue
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+
+const isDark = ref(false);
+
+const syncTheme = () => {
+  document.documentElement.classList.toggle('dark', isDark.value);
+};
+
+const toggleTheme = () => {
+  isDark.value = !isDark.value;
+  syncTheme();
+};
+
+onMounted(() => {
+  // Initialize from system preference
+  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  syncTheme();
+});
+
+const calendarClass = computed(() => 
+  isDark.value ? 'my-calendar dark' : 'my-calendar'
+);
+</script>
+
+<template>
+  <button @click="toggleTheme">
+    {{ isDark ? '☀️ Light' : '🌙 Dark' }}
+  </button>
+  
+  <ScheduleForm :custom-class="calendarClass" ... />
+</template>
+```
+
+---
+
+## 📸 Screenshots
+
+### Light Mode
+![Light Mode](https://i.postimg.cc/PJ7SrJr6/Bildschirmfoto-2025-08-18-um-19-11-38.png)
+
+### Dark Mode
+![Dark Mode](https://i.postimg.cc/placeholder-dark.png)
+
+---
+
+## 🗺️ Roadmap
+
+- Quickly jump back to the current week
+- Visual indicator for the current day
+- Click on empty cell to create a new event
+- Full month overview with event indicators
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request.
+
+---
+
+## 👨‍💻 About Me
+
+I'm a motivated developer working as a full-stack engineer in the cloud department of a cybersecurity company. I'm dedicated to building secure and robust applications while continuously expanding my skills.
+
+---
+
+## 📄 License
 
 [MIT](https://choosealicense.com/licenses/mit/)
+
+---
+
+## 💬 Support
+
+If you have questions or need help, please [open an issue](https://github.com/yourusername/vue3-mycalendar/issues).
