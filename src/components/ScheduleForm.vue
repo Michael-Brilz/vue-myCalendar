@@ -1,41 +1,53 @@
 <template>
   <div :class="['calendar-theme', customClass, { dark: isDark }]" :style="customStyles">
-    <form class="form-container" @submit.prevent="addEvent">
-      <div v-for="field in additionalFields" :key="field.id" class="form-group">
-        <label :for="field.id" class="form-label">{{ field.label }}:</label>
 
-        <div v-if="field.type === 'select'">
-          <select :id="field.id" v-model="newEvent[field.model]" required class="form-select">
-            <option v-for="option in field.options" :key="option.id" :value="option">
-              {{ option.name || `${option.first_name} ${option.last_name}` }}
-            </option>
-          </select>
+    <!-- SLOT FOR CUSTOM FORM -->
+    <slot
+        name="form"
+        :new-event="newEvent"
+        :add-event="addEvent"
+        :additional-fields="additionalFields"
+        :labels="labelsAndSettings"
+        :reset-form="resetForm"
+    >
+      <!-- DEFAULT FORM -->
+      <form class="form-container" @submit.prevent="addEvent">
+        <div v-for="field in additionalFields" :key="field.id" class="form-group">
+          <label :for="field.id" class="form-label">{{ field.label }}:</label>
+
+          <div v-if="field.type === 'select'">
+            <select :id="field.id" v-model="newEvent[field.model]" required class="form-select">
+              <option v-for="option in field.options" :key="option.id" :value="option">
+                {{ option.name || `${option.first_name} ${option.last_name}` }}
+              </option>
+            </select>
+          </div>
+
+          <div v-else>
+            <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input" />
+          </div>
         </div>
 
-        <div v-else>
-          <input :id="field.id" v-model="newEvent[field.model]" :type="field.type" required class="form-input" />
+        <div class="form-group">
+          <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel }}:</label>
+          <input id="start" v-model="newEvent.start" type="time" required class="form-input" />
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="start" class="form-label">{{ labelsAndSettings.startTimeLabel }}:</label>
-        <input id="start" v-model="newEvent.start" type="time" required class="form-input" />
-      </div>
+        <div class="form-group">
+          <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel }}:</label>
+          <input id="end" v-model="newEvent.end" type="time" required class="form-input" />
+        </div>
 
-      <div class="form-group">
-        <label for="end" class="form-label">{{ labelsAndSettings.endTimeLabel }}:</label>
-        <input id="end" v-model="newEvent.end" type="time" required class="form-input" />
-      </div>
+        <div class="form-group">
+          <label for="date" class="form-label">{{ labelsAndSettings.dateLabel }}:</label>
+          <input id="date" v-model="newEvent.date" type="date" required class="form-input" />
+        </div>
 
-      <div class="form-group">
-        <label for="date" class="form-label">{{ labelsAndSettings.dateLabel }}:</label>
-        <input id="date" v-model="newEvent.date" type="date" required class="form-input" />
-      </div>
-
-      <button type="submit" class="submit-button">
-        {{ labelsAndSettings.submitButtonText }}
-      </button>
-    </form>
+        <button type="submit" class="submit-button">
+          {{ labelsAndSettings.submitButtonText }}
+        </button>
+      </form>
+    </slot>
 
     <div class="calendar">
       <div class="navigation">
@@ -119,23 +131,43 @@ import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
 
-const props = defineProps<{
-  customClass: string;
-  customStyles?: Record<string, any>;
-  schedules: EventInfo[];
-  additionalFields: Field[];
-  weekdays?: string[];
-  eventTitleColor?: string;
-  eventTitleSize?: string;
-  popupFields?: string[];
-  labelsAndSettings?: LabelsAndSettings;
-  placeholderSettings?: {
-    todo?: string;
-    participant?: string;
-  };
-  popupVisible: boolean;
-  popupEvent: EventInfo | null;
-}>();
+const props = withDefaults(
+    defineProps<{
+      schedules: EventInfo[];
+      additionalFields: Field[];
+      customClass?: string;
+      customStyles?: Record<string, any>;
+      weekdays?: string[];
+      eventTitleColor?: string;
+      eventTitleSize?: string;
+      popupFields?: string[];
+      labelsAndSettings?: LabelsAndSettings;
+      placeholderSettings?: {
+        todo?: string;
+        participant?: string;
+      };
+      popupVisible?: boolean;
+      popupEvent?: EventInfo | null;
+    }>(),
+    {
+      customClass: '',
+      customStyles: () => ({}),
+      weekdays: () => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      eventTitleColor: '#000',
+      eventTitleSize: '16px',
+      popupFields: () => [],
+      labelsAndSettings: () => ({
+        startTimeLabel: 'Start Time',
+        endTimeLabel: 'End Time',
+        dateLabel: 'Date',
+        submitButtonText: 'Add Entry',
+        calendarWeekLabel: 'CW',
+      }),
+      placeholderSettings: () => ({}),
+      popupVisible: false,
+      popupEvent: null,
+    }
+);
 
 const emit = defineEmits([
   'submit-event',
@@ -177,18 +209,22 @@ const popupEvent = computed(() => props.popupEvent);
 const currentWeekOffset = ref(0);
 const draggedEvent = ref<EventInfo | null>(null);
 
-const addEvent = () => {
+const addEvent = (externalEvent?: Partial<EventInfo>) => {
+  const eventData = externalEvent || newEvent.value;
+
   const event: Partial<EventInfo> = {
-    start: newEvent.value.start,
-    end: newEvent.value.end,
-    date: newEvent.value.date,
-    info: newEvent.value.info,
-    color: newEvent.value.color,
+    start: eventData.start,
+    end: eventData.end,
+    date: eventData.date,
+    info: eventData.info,
+    color: eventData.color,
   };
+
   props.additionalFields.forEach((field) => {
-    event[field.model] = newEvent.value[field.model];
+    event[field.model] = eventData[field.model];
   });
   emit('submit-event', event as EventInfo);
+  resetForm();
   Object.keys(newEvent.value).forEach((key) => {
     newEvent.value[key as keyof EventInfo] = '' as any;
   });
@@ -208,6 +244,12 @@ const loadEvents = () => {
   });
 };
 watchEffect(loadEvents);
+
+const resetForm = () => {
+  Object.keys(newEvent.value).forEach((key) => {
+    newEvent.value[key as keyof EventInfo] = '' as any;
+  });
+};
 
 const getDateForWeekday = (weekdayIndex: number) => {
   const today = new Date();
@@ -313,6 +355,12 @@ onMounted(() => {
   // init theme from system preference
   const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
   if (mq?.matches) isDark.value = true;
+});
+
+defineExpose({
+  newEvent,
+  addEvent,
+  resetForm,
 });
 </script>
 

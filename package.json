@@ -1,7 +1,7 @@
 {
   "name": "vue3-mycalendar",
   "description": "A calendar and scheduling package for Vue 3",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "main": "dist/vue3-mycalendar.umd.js",
   "module": "dist/vue3-mycalendar.es.js",
   "style": "dist/style.css",
@@ -75,7 +75,7 @@
     "@vitejs/plugin-vue": "^5.1.4",
     "sass-embedded": "^1.80.6",
     "typescript": "~5.6.2",
-    "vite": "^5.4.9",
+    "vite": "7.1.11",
     "vue-tsc": "^2.1.6"
   }
 }
