@@ -4,7 +4,7 @@
   "version": "0.7.1",
   "main": "dist/vue3-mycalendar.umd.js",
   "module": "dist/vue3-mycalendar.es.js",
-  "style": "dist/style.css",
+  "style": "dist/vue3-mycalendar.css",
   "author": {
     "name": "Michael Brilz"
   },
@@ -17,7 +17,7 @@
       "import": "./dist/vue3-mycalendar.es.js",
       "require": "./dist/vue3-mycalendar.umd.js"
     },
-    "./dist/style.css": "./dist/style.css"
+    "./style.css": "./dist/vue3-mycalendar.css"
   },
   "types": "./dist/index.d.ts",
   "files": [
