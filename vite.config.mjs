@@ -4,21 +4,30 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [vue()],
+
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
+
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'MyCalendar',
       fileName: (format) => `vue3-mycalendar.${format}.js`,
-      formats: ['es', 'umd']
+      formats: ['es', 'umd'],
     },
+
     rollupOptions: {
       external: ['vue'],
+
       output: {
         globals: {
           vue: 'Vue',
-          exports: 'named',
-        }
-      }
-    }
-  }
+        },
+        exports: 'named',
+      },
+    },
+  },
 });
