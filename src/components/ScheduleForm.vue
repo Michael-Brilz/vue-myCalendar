@@ -1,5 +1,5 @@
 <template>
-  <div :class="['calendar-theme', customClass, { dark: isDark }]" :style="customStyles">
+  <div :class="['calendar-theme', customClass, { dark: isDark, 'is-dragging': isDraggingActive }]" :style="customStyles">
 
     <!-- CUSTOM FORM SLOT -->
     <slot
@@ -58,12 +58,30 @@
     <!-- CALENDAR -->
     <div class="calendar">
       <div class="navigation">
-        <button type="button" class="arrow-button" @click="prevWeek">&lt;</button>
-        <span class="current-week">{{ labelsAndSettings.calendarWeekLabel }} {{ getCurrentWeekNumber() }}</span>
-        <button type="button" class="arrow-button" @click="nextWeek">&gt;</button>
+        <button type="button" class="arrow-button" @click="goPrev">&lt;</button>
+        <span class="current-week">{{ headerLabel }}</span>
+        <button type="button" class="arrow-button" @click="goNext">&gt;</button>
+
+        <div class="view-toggle">
+          <button
+              type="button"
+              :class="['view-btn', { active: activeView === 'week' }]"
+              @click="activeView = 'week'"
+          >
+            {{ labelsAndSettings.weekViewLabel }}
+          </button>
+          <button
+              type="button"
+              :class="['view-btn', { active: activeView === 'month' }]"
+              @click="activeView = 'month'"
+          >
+            {{ labelsAndSettings.monthViewLabel }}
+          </button>
+        </div>
       </div>
 
-      <div class="hours-and-days">
+      <!-- WEEK VIEW -->
+      <div v-if="activeView === 'week'" class="hours-and-days">
         <div class="hours">
           <div class="empty-slot"></div>
           <div v-for="hour in hours" :key="hour" class="hour">{{ hour }}</div>
@@ -82,19 +100,26 @@
                 v-for="(day, dayIndex) in 7"
                 :key="dayIndex"
                 class="day"
-                @dragover.prevent
-                @drop="onDrop($event, dayIndex)"
+                :data-ymd="getDateForWeekday(dayIndex)"
             >
               <div v-for="hour in hours" :key="hour" class="hour"></div>
 
+              <!-- Live preview ghost -->
+              <div
+                  v-if="drag?.active && drag.mode === 'week' && drag.previewYmd === getDateForWeekday(dayIndex)"
+                  :key="'preview-' + dayIndex"
+                  class="event-preview"
+                  :style="previewStyle"
+              >
+                {{ dragLabel }}
+              </div>
+
               <div
                   v-for="event in events[getDateForWeekday(dayIndex)] || []"
-                  :key="event.id"
+                  :key="'ev-' + event.id"
                   class="event"
                   :style="getEventStyle(event)"
-                  draggable="true"
-                  @dragstart="onDragStart($event, event)"
-                  @dragend="onDragEnd"
+                  @pointerdown="onEventPointerDown($event, event, getDateForWeekday(dayIndex))"
               >
                 <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">
                   {{ event.title }}
@@ -108,6 +133,65 @@
           </div>
         </div>
       </div>
+
+      <!-- MONTH VIEW -->
+      <div v-else class="month-view">
+        <div class="month-weekdays">
+          <div v-for="(name, i) in monthWeekdayHeaders" :key="i" class="month-weekday">
+            {{ name }}
+          </div>
+        </div>
+
+        <div class="month-grid">
+          <div
+              v-for="cell in monthCells"
+              :key="cell.ymd"
+              :data-ymd="cell.ymd"
+              :class="['month-cell', {
+                'is-outside': !cell.inMonth,
+                'is-today': cell.isToday,
+                'drop-target': drag?.active && drag.mode === 'month' && drag.previewYmd === cell.ymd,
+              }]"
+          >
+            <button type="button" class="month-daynum" @click="goToDay(cell.ymd)">
+              {{ cell.day }}
+            </button>
+
+            <div class="month-events">
+              <button
+                  v-for="event in cell.events.slice(0, MONTH_MAX_VISIBLE)"
+                  :key="'mev-' + event.id"
+                  type="button"
+                  class="month-chip"
+                  :style="{ backgroundColor: event.color || 'var(--calendar-primary-color)' }"
+                  @pointerdown="onEventPointerDown($event, event, cell.ymd)"
+                  @click="showEventInfo(event)"
+              >
+                <span class="month-chip-time">{{ chipTime(event) }}</span>
+                <span class="month-chip-title">{{ event.title }}</span>
+              </button>
+
+              <button
+                  v-if="cell.events.length > MONTH_MAX_VISIBLE"
+                  type="button"
+                  class="month-more"
+                  @click="goToDay(cell.ymd)"
+              >
+                +{{ cell.events.length - MONTH_MAX_VISIBLE }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating time/date tooltip that follows the cursor while dragging -->
+    <div
+        v-if="drag?.active"
+        class="drag-time-tooltip"
+        :style="{ left: (drag.cursorX + 14) + 'px', top: (drag.cursorY + 14) + 'px' }"
+    >
+      {{ dragLabel }}
     </div>
 
     <!-- CUSTOM POPUP SLOT -->
@@ -136,10 +220,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect, onMounted, useSlots } from 'vue';
+import { ref, computed, watchEffect, onMounted, onBeforeUnmount, useSlots } from 'vue';
 import Popup from './Popup.vue';
 import myLogoSrc from '../assets/icons8-info.svg';
 import { Field, EventInfo, LabelsAndSettings } from '@/types/EventInterfaces';
+import {
+  zonedParts,
+  zonedYmd,
+  minutesOfDayInZone,
+  zonedWallTimeToUtc,
+  startOfWeekYmd,
+  addDaysYmd,
+  formatHm,
+  monthGridYmds,
+  daysInMonth,
+} from '@/utils/calendarTime';
+
+type CalendarView = 'week' | 'month';
 
 // ============================================================================
 // Props
@@ -162,6 +259,9 @@ const props = withDefaults(
       };
       popupVisible?: boolean;
       popupEvent?: EventInfo | null;
+      timeZone?: string;
+      weekStartsOn?: 0 | 1;
+      view?: CalendarView;
     }>(),
     {
       customClass: '',
@@ -180,6 +280,9 @@ const props = withDefaults(
       placeholderSettings: () => ({}),
       popupVisible: false,
       popupEvent: null,
+      timeZone: () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+      weekStartsOn: 1,
+      view: undefined,
     }
 );
 
@@ -195,6 +298,7 @@ const emit = defineEmits<{
   'close-popup': [];
   'update:todos': [payload: { todos: string[]; eventId: number }];
   'update:participants': [payload: { participants: string[]; eventId: number }];
+  'update:view': [view: CalendarView];
 }>();
 
 // ============================================================================
@@ -217,21 +321,63 @@ const newEvent = ref<Partial<EventInfo>>({
   title: '',
   description: '',
 });
-const currentWeekOffset = ref(0);
-const draggedEvent = ref<EventInfo | null>(null);
+
+const anchorDate = ref(new Date());
+const internalView = ref<CalendarView>('week');
+
+const MONTH_MAX_VISIBLE = 3;
+const DRAG_THRESHOLD_PX = 4;
+const PX_PER_HOUR = 40;
 
 const hours = ref(
     Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0') + ':00')
 );
 
+// ---- Drag state (pointer-based) --------------------------------------------
+interface DragState {
+  event: EventInfo;
+  pointerId: number;
+  startX: number;
+  startY: number;
+  grabOffsetMinutes: number; // where inside the event it was grabbed (week only)
+  durationMin: number;
+  mode: CalendarView;
+  active: boolean; // true once the move threshold is passed
+  previewYmd: string;
+  previewStartMin: number; // week only
+  cursorX: number;
+  cursorY: number;
+}
+
+const drag = ref<DragState | null>(null);
+
+// Suppresses the click that browsers may synthesize right after a drag,
+// so a move doesn't accidentally open the popup.
+let dragJustEnded = false;
+
 // ============================================================================
 // Computed
 // ============================================================================
 
-const weekdays = computed(() => props.weekdays);
 const eventTitleColor = computed(() => props.eventTitleColor);
 const eventTitleSize = computed(() => props.eventTitleSize);
 const additionalFields = computed(() => props.additionalFields);
+
+const timeZone = computed(() => props.timeZone);
+const weekStartsOn = computed<0 | 1>(() => props.weekStartsOn);
+
+const activeView = computed<CalendarView>({
+  get: () => props.view ?? internalView.value,
+  set: (value) => {
+    internalView.value = value;
+    emit('update:view', value);
+  },
+});
+
+const weekdays = computed(() => {
+  const list = props.weekdays;
+  return weekStartsOn.value === 1 ? list : [list[6], ...list.slice(0, 6)];
+});
 
 const labelsAndSettings = computed(() => ({
   startTimeLabel: props.labelsAndSettings?.startTimeLabel || 'Start Time',
@@ -241,19 +387,209 @@ const labelsAndSettings = computed(() => ({
   calendarWeekLabel: props.labelsAndSettings?.calendarWeekLabel || 'CW',
   todosLabel: props.labelsAndSettings?.todosLabel,
   participantsLabel: props.labelsAndSettings?.participantsLabel,
+  weekViewLabel: props.labelsAndSettings?.weekViewLabel || 'Week',
+  monthViewLabel: props.labelsAndSettings?.monthViewLabel || 'Month',
 }));
 
 const placeholderSettings = computed(() => props.placeholderSettings || {});
 const popupVisible = computed(() => props.popupVisible);
 const popupEvent = computed(() => props.popupEvent);
 
+const weekStartYmd = computed(() =>
+    startOfWeekYmd(anchorDate.value, timeZone.value, weekStartsOn.value)
+);
+
+const headerLabel = computed(() => {
+  if (activeView.value === 'month') {
+    return new Intl.DateTimeFormat(undefined, {
+      month: 'long',
+      year: 'numeric',
+      timeZone: timeZone.value,
+    }).format(anchorDate.value);
+  }
+  return `${labelsAndSettings.value.calendarWeekLabel} ${getCurrentWeekNumber()}`;
+});
+
+const monthCells = computed(() => {
+  const parts = zonedParts(anchorDate.value, timeZone.value);
+  const ymds = monthGridYmds(parts.year, parts.month, weekStartsOn.value);
+  const todayYmd = zonedYmd(new Date(), timeZone.value);
+
+  return ymds.map((ymd) => {
+    const [, m, d] = ymd.split('-').map(Number);
+    return {
+      ymd,
+      day: d,
+      inMonth: m === parts.month,
+      isToday: ymd === todayYmd,
+      events: events.value[ymd] ?? [],
+    };
+  });
+});
+
+const monthWeekdayHeaders = computed(() =>
+    monthCells.value.slice(0, 7).map((cell) => {
+      const [y, m, d] = cell.ymd.split('-').map(Number);
+      return new Intl.DateTimeFormat(undefined, {
+        weekday: 'short',
+        timeZone: 'UTC',
+      }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+    })
+);
+
+// True while an actual drag (past threshold) is in progress.
+const isDraggingActive = computed(() => !!drag.value?.active);
+
+// Ghost style for the week preview.
+const previewStyle = computed(() => {
+  const state = drag.value;
+  if (!state || !state.active || state.mode !== 'week') return {};
+  const top = (state.previewStartMin * PX_PER_HOUR) / 60;
+  const height = (Math.max(state.durationMin, 15) * PX_PER_HOUR) / 60;
+  return {
+    position: 'absolute' as const,
+    top: `${top}px`,
+    height: `${height}px`,
+    left: 0,
+    right: 0,
+    opacity: 0.55,
+    pointerEvents: 'none' as const,
+    borderRadius: 'var(--event-border-radius)',
+    background: state.event.color || 'var(--calendar-primary-color)',
+    zIndex: 5,
+  };
+});
+
+// Tooltip text: time range in week, target date in month.
+const dragLabel = computed(() => {
+  const state = drag.value;
+  if (!state || !state.active) return '';
+
+  if (state.mode === 'week') {
+    const endMin = state.previewStartMin + state.durationMin;
+    return `${fmtMinutes(state.previewStartMin)} – ${fmtMinutes(endMin)}`;
+  }
+
+  const [y, m, d] = state.previewYmd.split('-').map(Number);
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(y, m - 1, d, 12)));
+});
+
+// ============================================================================
+// Time normalization
+// ============================================================================
+
+function eventInstants(event: EventInfo): { start: Date; end: Date } | null {
+  if (event.startsAt && event.endsAt) {
+    const start = new Date(event.startsAt);
+    const end = new Date(event.endsAt);
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+      return { start, end };
+    }
+  }
+
+  if (event.date && event.start && event.end) {
+    const [sy, sm, sd] = event.date.split('-').map(Number);
+    const [sh, smin] = event.start.split(':').map(Number);
+    const [eh, emin] = event.end.split(':').map(Number);
+
+    return {
+      start: zonedWallTimeToUtc(sy, sm, sd, sh, smin, timeZone.value),
+      end: zonedWallTimeToUtc(sy, sm, sd, eh, emin, timeZone.value),
+    };
+  }
+
+  return null;
+}
+
+// Minutes-of-day -> 'HH:MM'.
+function fmtMinutes(total: number): string {
+  const clamped = Math.max(0, Math.min(total, 1439));
+  const hh = String(Math.floor(clamped / 60)).padStart(2, '0');
+  const mm = String(clamped % 60).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
+
+// ============================================================================
+// Overlap layout (week view)
+// ============================================================================
+
+function computeDayLayout(
+    dayEvents: EventInfo[]
+): Record<number, { col: number; cols: number }> {
+  const items = dayEvents
+      .map((event) => {
+        const instants = eventInstants(event);
+        if (!instants) return null;
+        return {
+          id: event.id,
+          start: minutesOfDayInZone(instants.start, timeZone.value),
+          end: minutesOfDayInZone(instants.end, timeZone.value),
+        };
+      })
+      .filter((x): x is { id: number; start: number; end: number } => x !== null)
+      .sort((a, b) => a.start - b.start || a.end - b.end);
+
+  const result: Record<number, { col: number; cols: number }> = {};
+  let cluster: { id: number; start: number; end: number }[] = [];
+  let clusterEnd = -Infinity;
+
+  const flush = (group: typeof cluster) => {
+    const columnEnds: number[] = [];
+    const colOf: Record<number, number> = {};
+
+    for (const item of group) {
+      let placed = false;
+      for (let c = 0; c < columnEnds.length; c++) {
+        if (columnEnds[c] <= item.start) {
+          columnEnds[c] = item.end;
+          colOf[item.id] = c;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        columnEnds.push(item.end);
+        colOf[item.id] = columnEnds.length - 1;
+      }
+    }
+
+    const cols = columnEnds.length;
+    for (const item of group) {
+      result[item.id] = { col: colOf[item.id], cols };
+    }
+  };
+
+  for (const item of items) {
+    if (cluster.length && item.start >= clusterEnd) {
+      flush(cluster);
+      cluster = [];
+      clusterEnd = -Infinity;
+    }
+    cluster.push(item);
+    clusterEnd = Math.max(clusterEnd, item.end);
+  }
+  if (cluster.length) flush(cluster);
+
+  return result;
+}
+
+const overlapLayout = computed(() => {
+  const map: Record<number, { col: number; cols: number }> = {};
+  for (const ymd of Object.keys(events.value)) {
+    Object.assign(map, computeDayLayout(events.value[ymd]));
+  }
+  return map;
+});
+
 // ============================================================================
 // Methods - Form
 // ============================================================================
 
-/**
- * Reset form to initial state
- */
 const resetForm = () => {
   newEvent.value = {
     start: '',
@@ -264,15 +600,11 @@ const resetForm = () => {
     description: '',
   };
 
-  // Reset additional field models
   props.additionalFields.forEach((field) => {
     (newEvent.value as any)[field.model] = '';
   });
 };
 
-/**
- * Add/Submit event
- */
 const addEvent = (externalEvent?: Partial<EventInfo>) => {
   const eventData = externalEvent || newEvent.value;
 
@@ -286,7 +618,6 @@ const addEvent = (externalEvent?: Partial<EventInfo>) => {
     description: eventData.description,
   };
 
-  // Add additional field values
   props.additionalFields.forEach((field) => {
     event[field.model] = eventData[field.model];
   });
@@ -296,118 +627,226 @@ const addEvent = (externalEvent?: Partial<EventInfo>) => {
 };
 
 // ============================================================================
-// Methods - Calendar Navigation
+// Methods - Navigation
 // ============================================================================
 
 const getDateForWeekday = (weekdayIndex: number): string => {
-  const today = new Date();
-  const currentWeekday = today.getDay();
-  const distance = weekdayIndex + 1 - currentWeekday + currentWeekOffset.value * 7;
-  const resultDate = new Date(today);
-  resultDate.setDate(today.getDate() + distance);
-  return resultDate.toISOString().substring(0, 10);
+  return addDaysYmd(weekStartYmd.value, weekdayIndex);
 };
 
 const getCurrentWeekNumber = (): number => {
-  const today = new Date();
-  const startOfYear = new Date(today.getFullYear(), 0, 1);
-  const pastDays = (today.getTime() - startOfYear.getTime()) / 86400000 + currentWeekOffset.value * 7;
-  return Math.ceil((pastDays + startOfYear.getDay() + 1) / 7);
+  const parts = zonedParts(anchorDate.value, timeZone.value);
+  const startOfYear = new Date(Date.UTC(parts.year, 0, 1));
+  const current = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  const pastDays = (current.getTime() - startOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDays + startOfYear.getUTCDay() + 1) / 7);
 };
 
-const prevWeek = () => {
-  currentWeekOffset.value -= 1;
+const shiftWeek = (direction: number) => {
+  anchorDate.value = new Date(anchorDate.value.getTime() + direction * 7 * 86400000);
 };
 
-const nextWeek = () => {
-  currentWeekOffset.value += 1;
+const shiftMonth = (direction: number) => {
+  const parts = zonedParts(anchorDate.value, timeZone.value);
+  let month = parts.month + direction;
+  let year = parts.year;
+  while (month > 12) { month -= 12; year += 1; }
+  while (month < 1) { month += 12; year -= 1; }
+  const day = Math.min(parts.day, daysInMonth(year, month));
+  anchorDate.value = zonedWallTimeToUtc(year, month, day, 12, 0, timeZone.value);
+};
+
+const goPrev = () => (activeView.value === 'month' ? shiftMonth(-1) : shiftWeek(-1));
+const goNext = () => (activeView.value === 'month' ? shiftMonth(1) : shiftWeek(1));
+
+const goToDay = (ymd: string) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  anchorDate.value = zonedWallTimeToUtc(y, m, d, 12, 0, timeZone.value);
+  activeView.value = 'week';
 };
 
 // ============================================================================
 // Methods - Event Styling
 // ============================================================================
 
-const parseTime = (timeStr: string) => {
-  const [h, m] = timeStr.split(':').map(Number);
-  return { h, m, totalMinutes: h * 60 + m };
-};
-
 const getEventStyle = (event: EventInfo) => {
-  const start = parseTime(event.start);
-  const end = parseTime(event.end);
-  const top = (start.totalMinutes * 40) / 60;
-  const height = ((end.totalMinutes - start.totalMinutes) * 40) / 60;
+  const instants = eventInstants(event);
+  if (!instants) return { display: 'none' };
+
+  const startMin = minutesOfDayInZone(instants.start, timeZone.value);
+  const endMin = minutesOfDayInZone(instants.end, timeZone.value);
+
+  const top = (startMin * PX_PER_HOUR) / 60;
+  const height = (Math.max(endMin - startMin, 15) * PX_PER_HOUR) / 60;
+
+  const layout = overlapLayout.value[event.id] ?? { col: 0, cols: 1 };
+  const widthPct = 100 / layout.cols;
+  const leftPct = widthPct * layout.col;
+
+  // Dim the event that is currently being dragged.
+  const dimmed = drag.value?.active && drag.value.event.id === event.id;
 
   return {
     backgroundColor: event.color || 'var(--calendar-primary-color)',
     top: `${top}px`,
     height: `${height}px`,
     position: 'absolute' as const,
-    left: 0,
-    right: 0,
+    left: `${leftPct}%`,
+    width: `calc(${widthPct}% - 4px)`,
+    right: 'auto',
     zIndex: 1,
+    opacity: dimmed ? 0.35 : 1,
     borderRadius: 'var(--event-border-radius)',
   };
 };
 
+const chipTime = (event: EventInfo): string => {
+  const instants = eventInstants(event);
+  if (!instants) return '';
+  return formatHm(instants.start, timeZone.value);
+};
+
 // ============================================================================
-// Methods - Drag & Drop
+// Methods - Pointer Drag & Drop
 // ============================================================================
 
-const getDurationInMinutes = (start: string, end: string): number => {
-  return parseTime(end).totalMinutes - parseTime(start).totalMinutes;
-};
+// Start a potential drag. Does not capture or preventDefault yet, so a
+// simple tap/click (info button, month chip) still behaves normally.
+const onEventPointerDown = (e: PointerEvent, event: EventInfo, ymd: string) => {
+  if (e.button !== 0 && e.pointerType === 'mouse') return; // left button only
 
-const calculateNewEnd = (start: string, duration: number): string => {
-  const total = parseTime(start).totalMinutes + duration;
-  const h = Math.floor(total / 60).toString().padStart(2, '0');
-  const m = (total % 60).toString().padStart(2, '0');
-  return `${h}:${m}`;
-};
+  const instants = eventInstants(event);
+  if (!instants) return;
 
-const onDragStart = (_event: DragEvent, event: EventInfo) => {
-  draggedEvent.value = event;
-};
+  const startMin = minutesOfDayInZone(instants.start, timeZone.value);
+  const endMin = minutesOfDayInZone(instants.end, timeZone.value);
 
-const onDragEnd = () => {
-  draggedEvent.value = null;
-};
+  const el = e.currentTarget as HTMLElement;
+  const rect = el.getBoundingClientRect();
+  const grabY = e.clientY - rect.top;
 
-const onDrop = (e: DragEvent, dayIndex: number) => {
-  if (!draggedEvent.value) return;
-
-  const target = e.currentTarget as HTMLElement;
-  const rect = target.getBoundingClientRect();
-  const dropY = e.clientY - rect.top;
-  const minutesPerPixel = 60 / 40;
-  const newStartMinutes = Math.round((dropY * minutesPerPixel) / 15) * 15;
-
-  const newStart = `${String(Math.floor(newStartMinutes / 60)).padStart(2, '0')}:${String(newStartMinutes % 60).padStart(2, '0')}`;
-  const duration = getDurationInMinutes(draggedEvent.value.start, draggedEvent.value.end);
-  const newEnd = calculateNewEnd(newStart, duration);
-  const newDate = getDateForWeekday(dayIndex);
-
-  const updatedEvent = {
-    ...draggedEvent.value,
-    start: newStart,
-    end: newEnd,
-    date: newDate,
+  drag.value = {
+    event,
+    pointerId: e.pointerId,
+    startX: e.clientX,
+    startY: e.clientY,
+    grabOffsetMinutes: activeView.value === 'week' ? (grabY * 60) / PX_PER_HOUR : 0,
+    durationMin: endMin - startMin,
+    mode: activeView.value,
+    active: false,
+    previewYmd: ymd,
+    previewStartMin: startMin,
+    cursorX: e.clientX,
+    cursorY: e.clientY,
   };
 
-  emit('update-event', updatedEvent);
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+  window.addEventListener('pointercancel', onPointerCancel);
+};
 
-  // Update local state
-  const oldDate = draggedEvent.value.date;
-  events.value[oldDate] = events.value[oldDate]?.filter((ev) => ev.id !== draggedEvent.value!.id) || [];
-  events.value[newDate] = [...(events.value[newDate] || []), updatedEvent];
-  draggedEvent.value = null;
+const onPointerMove = (e: PointerEvent) => {
+  const state = drag.value;
+  if (!state || e.pointerId !== state.pointerId) return;
+
+  // Pass the threshold before treating it as a real drag.
+  if (!state.active) {
+    const dx = e.clientX - state.startX;
+    const dy = e.clientY - state.startY;
+    if (Math.hypot(dx, dy) < DRAG_THRESHOLD_PX) return;
+    state.active = true;
+  }
+
+  e.preventDefault();
+  state.cursorX = e.clientX;
+  state.cursorY = e.clientY;
+
+  // Find the day column / month cell under the cursor via its data-ymd.
+  const under = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+  const container = under?.closest('[data-ymd]') as HTMLElement | null;
+  if (!container) return;
+
+  state.previewYmd = container.getAttribute('data-ymd') as string;
+
+  if (state.mode === 'week') {
+    const rect = container.getBoundingClientRect();
+    const overY = e.clientY - rect.top;
+    const raw = (overY * 60) / PX_PER_HOUR - state.grabOffsetMinutes;
+    const clamped = Math.max(0, Math.min(raw, 1440 - state.durationMin));
+    state.previewStartMin = Math.round(clamped / 15) * 15;
+  }
+};
+
+const onPointerUp = (e: PointerEvent) => {
+  const state = drag.value;
+  if (!state || e.pointerId !== state.pointerId) return;
+
+  removeDragListeners();
+
+  if (state.active) {
+    commitDrag(state);
+    // Suppress the synthetic click that follows the drag.
+    dragJustEnded = true;
+    setTimeout(() => { dragJustEnded = false; }, 50);
+  }
+
+  drag.value = null;
+};
+
+const onPointerCancel = () => {
+  removeDragListeners();
+  drag.value = null;
+};
+
+const removeDragListeners = () => {
+  window.removeEventListener('pointermove', onPointerMove);
+  window.removeEventListener('pointerup', onPointerUp);
+  window.removeEventListener('pointercancel', onPointerCancel);
+};
+
+// Turn the preview into an actual moved event (UTC + legacy fields).
+const commitDrag = (state: DragState) => {
+  const [y, m, d] = state.previewYmd.split('-').map(Number);
+
+  let startMinInDay: number;
+  if (state.mode === 'week') {
+    startMinInDay = state.previewStartMin;
+  } else {
+    // Month: change the day, keep the original time of day.
+    const instants = eventInstants(state.event);
+    if (!instants) return;
+    startMinInDay = minutesOfDayInZone(instants.start, timeZone.value);
+  }
+
+  const newStartUtc = zonedWallTimeToUtc(
+      y, m, d,
+      Math.floor(startMinInDay / 60),
+      startMinInDay % 60,
+      timeZone.value,
+  );
+  const newEndUtc = new Date(newStartUtc.getTime() + state.durationMin * 60000);
+
+  emitMovedEvent(state.event, newStartUtc, newEndUtc);
+};
+
+const emitMovedEvent = (source: EventInfo, startUtc: Date, endUtc: Date) => {
+  emit('update-event', {
+    ...source,
+    startsAt: startUtc.toISOString(),
+    endsAt: endUtc.toISOString(),
+    date: zonedYmd(startUtc, timeZone.value),
+    start: formatHm(startUtc, timeZone.value),
+    end: formatHm(endUtc, timeZone.value),
+  });
 };
 
 // ============================================================================
 // Methods - Popup
 // ============================================================================
 
+// Guarded so a completed drag doesn't also open the popup.
 const showEventInfo = (event: EventInfo) => {
+  if (dragJustEnded) return;
   emit('show-info', event);
 };
 
@@ -428,19 +867,17 @@ const handlePopupUpdate = (updated: EventInfo) => {
 // ============================================================================
 
 const loadEvents = () => {
-  if (!props.schedules.length) {
-    events.value = {};
-    return;
+  const grouped: Record<string, EventInfo[]> = {};
+
+  for (const event of props.schedules) {
+    const instants = eventInstants(event);
+    if (!instants) continue;
+
+    const ymd = zonedYmd(instants.start, timeZone.value);
+    (grouped[ymd] ??= []).push(event);
   }
 
-  events.value = {};
-  props.schedules.forEach((event) => {
-    const eventDate = event.date;
-    if (!events.value[eventDate]) {
-      events.value[eventDate] = [];
-    }
-    events.value[eventDate].push(event);
-  });
+  events.value = grouped;
 };
 
 watchEffect(loadEvents);
@@ -450,16 +887,19 @@ watchEffect(loadEvents);
 // ============================================================================
 
 onMounted(() => {
-  // Init additional field models
   props.additionalFields.forEach((field) => {
     (newEvent.value as any)[field.model] = '';
   });
 
-  // Init theme from system preference
   const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
   if (mq?.matches) {
     isDark.value = true;
   }
+});
+
+onBeforeUnmount(() => {
+  // Clean up in case the component unmounts mid-drag.
+  removeDragListeners();
 });
 
 // ============================================================================
@@ -478,11 +918,10 @@ defineExpose({
    LIGHT THEME DEFAULTS
 ============================================================================ */
 .calendar-theme {
-  /* Core */
   --body-bg-color: #ffffff;
   --body-text-color: #000000;
+  --font-family: inherit;
 
-  /* Forms */
   --form-bg-color: #ffffff;
   --form-padding: 1rem;
   --form-border-radius: 8px;
@@ -491,6 +930,7 @@ defineExpose({
 
   --label-color: #333333;
   --label-font-weight: bold;
+  --label-font-size: 1rem;
 
   --input-height: 40px;
   --input-padding: 0.5rem;
@@ -499,40 +939,86 @@ defineExpose({
   --input-border-radius: 6px;
   --input-bg-color: #ffffff;
   --input-color: #000000;
+  --input-focus-border-color: var(--accent-color);
+  --input-focus-ring: rgba(0, 123, 255, 0.15);
 
-  /* Accent */
   --accent-color: #007bff;
   --accent-contrast: #ffffff;
 
-  /* Calendar + Grid */
   --calendar-primary-color: #a4d8ff;
   --grid-border-color: #cccccc;
 
-  /* Buttons */
   --button-bg-color: var(--accent-color);
   --button-hover-bg-color: #0056b3;
   --button-color: var(--accent-contrast);
   --button-padding: 0.6rem 1rem;
   --button-border-radius: 6px;
+  --button-font-size: 1rem;
 
-  /* Event */
   --event-border-radius: 8px;
+  --event-title-color: #000000;
+  --event-title-size: 16px;
+  --event-font-size: 12px;
+  --event-padding: 2px;
 
-  /* Nav / Week */
+  --event-preview-border: 2px dashed rgba(0, 0, 0, 0.35);
+  --event-preview-color: #000000;
+
   --arrow-button-bg: var(--accent-color);
   --arrow-button-color: var(--accent-contrast);
   --current-week-color: #000000;
+  --current-week-size: 1.2rem;
 
-  /* Popup */
+  --view-toggle-bg: var(--form-bg-color);
+  --view-toggle-border: 1px solid var(--grid-border-color);
+  --view-btn-color: var(--body-text-color);
+  --view-btn-active-bg: var(--accent-color);
+  --view-btn-active-color: var(--accent-contrast);
+
+  --month-cell-border: 1px solid var(--grid-border-color);
+  --month-cell-min-height: 96px;
+  --month-weekday-color: var(--body-text-color);
+  --month-weekday-size: 0.8125rem;
+  --month-daynum-color: var(--body-text-color);
+  --month-daynum-size: 0.8125rem;
+  --month-today-bg: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  --month-today-daynum-bg: var(--accent-color);
+  --month-today-daynum-color: var(--accent-contrast);
+  --month-chip-color: #000000;
+  --month-chip-size: 0.6875rem;
+  --month-chip-radius: 4px;
+  --month-outside-opacity: 0.4;
+  --month-drop-target-outline: 2px solid var(--accent-color);
+
+  --drag-tooltip-bg: var(--accent-color);
+  --drag-tooltip-color: var(--accent-contrast);
+  --drag-tooltip-radius: 6px;
+  --drag-tooltip-size: 0.8125rem;
+
   --popup-bg: #ffffff;
   --popup-overlay-bg: rgba(0, 0, 0, 0.5);
   --popup-border-radius: 5px;
+  --popup-title-color: #222222;
+  --popup-title-size: 1.5rem;
+  --popup-text-color: var(--body-text-color);
+  --popup-label-color: #333333;
+  --popup-input-color: var(--body-text-color);
+  --popup-input-border: 1px solid var(--grid-border-color);
+  --popup-input-focus-border: var(--accent-color);
+  --popup-icon-color: #444444;
+  --popup-icon-hover-color: #646262;
+  --popup-inline-btn-bg: #ffffff;
+  --popup-inline-btn-color: #444444;
+  --popup-inline-btn-hover-color: #646262;
+  --popup-save-bg: var(--button-bg-color);
+  --popup-save-color: var(--button-color);
+  --popup-save-hover-bg: var(--button-hover-bg-color);
 
-  /* Danger */
   --danger-bg: #e53e3e;
   --danger-text: #ffffff;
 
   color: var(--body-text-color);
+  font-family: var(--font-family);
 }
 
 /* ============================================================================
@@ -561,8 +1047,18 @@ defineExpose({
 
   --current-week-color: #ffffff;
 
+  --event-title-color: #000000;
+  --event-preview-color: #000000;
+
+  --month-chip-color: #000000;
+
   --popup-bg: rgba(18, 18, 18, 0.95);
   --popup-overlay-bg: rgba(0, 0, 0, 0.7);
+  --popup-title-color: #ffffff;
+  --popup-label-color: #ffffff;
+  --popup-icon-color: #cccccc;
+  --popup-inline-btn-bg: #2a2a2a;
+  --popup-inline-btn-color: #dddddd;
 }
 
 /* ============================================================================
@@ -595,20 +1091,19 @@ defineExpose({
 
     --popup-bg: rgba(18, 18, 18, 0.95);
     --popup-overlay-bg: rgba(0, 0, 0, 0.7);
+    --popup-title-color: #ffffff;
+    --popup-label-color: #ffffff;
   }
 }
 
 /* ============================================================================
    COMPONENT STYLES
 ============================================================================ */
-
-/* Info Logo */
 .calendar-theme .small-logo {
   width: 20px;
   height: 20px;
 }
 
-/* Form Container */
 .calendar-theme .form-container {
   display: flex;
   flex-wrap: wrap;
@@ -630,6 +1125,7 @@ defineExpose({
   display: block;
   color: var(--label-color);
   font-weight: var(--label-font-weight);
+  font-size: var(--label-font-size);
   margin-bottom: 4px;
 }
 
@@ -650,8 +1146,8 @@ defineExpose({
 .calendar-theme .form-input:focus,
 .calendar-theme .form-select:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.15);
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 0 2px var(--input-focus-ring);
 }
 
 .calendar-theme .submit-button {
@@ -662,14 +1158,13 @@ defineExpose({
   border: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  font-size: 1rem;
+  font-size: var(--button-font-size);
 }
 
 .calendar-theme .submit-button:hover {
   background-color: var(--button-hover-bg-color);
 }
 
-/* Calendar Layout */
 .calendar-theme .calendar {
   display: flex;
   flex-direction: column;
@@ -747,11 +1242,10 @@ defineExpose({
   flex-grow: 1;
 }
 
-/* Events */
 .calendar-theme .event {
   background-color: var(--calendar-primary-color);
-  padding: 2px;
-  font-size: 12px;
+  padding: var(--event-padding);
+  font-size: var(--event-font-size);
   border-radius: var(--event-border-radius);
   width: 95%;
   box-sizing: border-box;
@@ -770,15 +1264,51 @@ defineExpose({
 }
 
 .calendar-theme .event span {
-  color: var(--event-title-color, #000);
-  font-size: var(--event-title-size, 16px);
+  color: var(--event-title-color);
+  font-size: var(--event-title-size);
 }
 
 .calendar-theme .empty-slot {
   height: 40px;
 }
 
-/* Navigation */
+.calendar-theme.is-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.calendar-theme .event,
+.calendar-theme .month-chip {
+  touch-action: none;
+}
+
+.calendar-theme .event-preview {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2px 4px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--event-preview-color);
+  border: var(--event-preview-border);
+  box-sizing: border-box;
+}
+
+.calendar-theme .drag-time-tooltip {
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  padding: 4px 9px;
+  border-radius: var(--drag-tooltip-radius);
+  background: var(--drag-tooltip-bg);
+  color: var(--drag-tooltip-color);
+  font-size: var(--drag-tooltip-size);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+
 .calendar-theme .navigation {
   display: flex;
   justify-content: center;
@@ -802,12 +1332,151 @@ defineExpose({
 }
 
 .calendar-theme .current-week {
-  font-size: 1.2rem;
+  font-size: var(--current-week-size);
   font-weight: bold;
   color: var(--current-week-color);
 }
 
-/* Info Button */
+.calendar-theme .view-toggle {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 1.5rem;
+  padding: 3px;
+  background: var(--view-toggle-bg);
+  border: var(--view-toggle-border);
+  border-radius: 8px;
+}
+
+.calendar-theme .view-btn {
+  border: none;
+  background: transparent;
+  color: var(--view-btn-color);
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s ease;
+}
+
+.calendar-theme .view-btn.active {
+  background: var(--view-btn-active-bg);
+  color: var(--view-btn-active-color);
+}
+
+.calendar-theme .month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: var(--month-cell-border);
+}
+
+.calendar-theme .month-weekday {
+  text-align: center;
+  padding: 8px 0;
+  font-weight: bold;
+  font-size: var(--month-weekday-size);
+  color: var(--month-weekday-color);
+}
+
+.calendar-theme .month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: minmax(var(--month-cell-min-height), 1fr);
+}
+
+.calendar-theme .month-cell {
+  border-left: var(--month-cell-border);
+  border-bottom: var(--month-cell-border);
+  padding: 4px;
+  min-height: var(--month-cell-min-height);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  overflow: hidden;
+}
+
+.calendar-theme .month-cell:nth-child(7n + 1) {
+  border-left: none;
+}
+
+.calendar-theme .month-cell.is-outside {
+  opacity: var(--month-outside-opacity);
+}
+
+.calendar-theme .month-cell.is-today {
+  background: var(--month-today-bg);
+}
+
+.calendar-theme .month-cell.drop-target {
+  outline: var(--month-drop-target-outline);
+  outline-offset: -2px;
+}
+
+.calendar-theme .month-daynum {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--month-daynum-color);
+  font-size: var(--month-daynum-size);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.calendar-theme .month-cell.is-today .month-daynum {
+  background: var(--month-today-daynum-bg);
+  color: var(--month-today-daynum-color);
+}
+
+.calendar-theme .month-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
+.calendar-theme .month-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  border-radius: var(--month-chip-radius);
+  padding: 1px 5px;
+  font-size: var(--month-chip-size);
+  color: var(--month-chip-color);
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.calendar-theme .month-chip-time {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.calendar-theme .month-chip-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.calendar-theme .month-more {
+  border: none;
+  background: transparent;
+  color: var(--month-daynum-color);
+  font-size: var(--month-chip-size);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  padding: 1px 5px;
+  opacity: 0.75;
+}
+
+.calendar-theme .month-more:hover {
+  opacity: 1;
+}
+
 .calendar-theme .info-button {
   position: absolute;
   top: 2px;
@@ -826,7 +1495,6 @@ defineExpose({
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Remove Button */
 .calendar-theme .remove-button {
   background-color: var(--danger-bg);
   color: var(--danger-text);
@@ -842,41 +1510,6 @@ defineExpose({
   filter: brightness(0.9);
 }
 
-/* Popup */
-.calendar-theme .popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--popup-overlay-bg);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.calendar-theme .popup-content {
-  background-color: var(--popup-bg);
-  padding: 1rem;
-  border-radius: var(--popup-border-radius);
-  max-width: 400px;
-  width: 100%;
-}
-
-.calendar-theme .close-button {
-  background-color: var(--button-bg-color);
-  color: var(--button-color);
-  border: none;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-top: 1rem;
-}
-
-/* ============================================================================
-   RESPONSIVE
-============================================================================ */
 @media (max-width: 768px) {
   .calendar-theme .form-container {
     flex-direction: column;

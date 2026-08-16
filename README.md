@@ -1,19 +1,22 @@
 # vue3-mycalendar
 
-A powerful and customizable calendar component for Vue 3 with drag & drop support, custom forms, popups, and full theming capabilities.
+A powerful and customizable calendar component for Vue 3 with week & month views,
+pointer-based drag & drop, time-zone-correct rendering, custom forms, popups, and
+full theming via CSS variables.
 
 [![npm version](https://img.shields.io/npm/v/vue3-mycalendar.svg)](https://www.npmjs.com/package/vue3-mycalendar)
-[![license](https://img.shields.io/npm/l/vue3-mycalendar.svg)](https://github.com/yourusername/vue3-mycalendar/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/vue3-mycalendar.svg)](./LICENSE)
 
-## ✨ Features
+## Features
 
-- 📅 Weekly calendar view with hour grid
-- 🖱️ Drag & drop events between days and times
-- 📝 Customizable event forms via **Scoped Slots**
-- 🎨 Full theming with CSS variables
-- 🌙 Built-in Light & Dark mode
-- 📋 Event popups with todos & participants
-- 🔧 TypeScript support
+- Week view with an hour grid **and** a month view (toggle or `v-model:view`)
+- Time-zone-correct rendering: events stored in UTC, displayed in a target zone
+- Smooth pointer-based drag & drop with a live preview and a time tooltip
+- Overlapping events render side by side instead of stacking
+- Customizable event forms via scoped slots
+- Customizable event popup with todos & participants
+- Full theming through CSS variables (light & dark mode)
+- TypeScript support
 
 ## Installation
 
@@ -25,10 +28,13 @@ npm install vue3-mycalendar
 
 ```vue
 <template>
-  <ScheduleForm 
-    :schedules="schedules" 
-    :additional-fields="additionalFields" 
+  <ScheduleForm
+    :schedules="schedules"
+    :additional-fields="additionalFields"
     custom-class="my-calendar"
+    time-zone="Europe/Berlin"
+    :week-starts-on="1"
+    v-model:view="view"
     :labels-and-settings="labelsAndSettings"
     :popup-fields="popupFields"
     @submit-event="handleNewEvent"
@@ -42,47 +48,37 @@ import { ref, computed } from 'vue';
 import { ScheduleForm } from 'vue3-mycalendar';
 import 'vue3-mycalendar/dist/style.css';
 
+const view = ref<'week' | 'month'>('week');
+
+// Preferred: absolute UTC timestamps (startsAt / endsAt).
 const schedules = ref([
-  { 
-    id: 1, 
-    title: 'Meeting', 
-    date: '2025-07-04', 
-    start: '09:00', 
-    end: '10:00', 
-    color: '#e2Be33',
-    teacher: 'Malika Heaney', 
+  {
+    id: 1,
+    title: 'Meeting',
+    startsAt: '2026-06-28T07:00:00Z',
+    endsAt: '2026-06-28T08:00:00Z',
+    color: '#e2be33',
     room: 'Room 1',
     todos: ['Prepare agenda', 'Print documents'],
-    participants: ['Malika', 'Jonas']
-  },
-  { 
-    id: 2, 
-    title: 'Workshop', 
-    date: '2025-07-04', 
-    start: '13:00', 
-    end: '15:00', 
-    color: '#33C3FF',
-    teacher: 'John Doe', 
-    room: 'Room 2'
+    participants: ['Malika', 'Jonas'],
   },
 ]);
 
 const additionalFields = ref([
   { id: 'title', label: 'Title', type: 'text', model: 'title' },
-  { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
-  { 
-    id: 'room', 
-    label: 'Room', 
-    type: 'select', 
-    model: 'room', 
+  {
+    id: 'room',
+    label: 'Room',
+    type: 'select',
+    model: 'room',
     options: [
-      { id: 1, name: 'Room 1' }, 
-      { id: 2, name: 'Room 2' }
-    ] 
+      { id: 1, name: 'Room 1' },
+      { id: 2, name: 'Room 2' },
+    ],
   },
 ]);
 
-const popupFields = ref(['title', 'date', 'start', 'end', 'teacher', 'room']);
+const popupFields = ref(['title', 'startsAt', 'endsAt', 'room']);
 
 const labelsAndSettings = computed(() => ({
   startTimeLabel: 'Start Time',
@@ -90,354 +86,260 @@ const labelsAndSettings = computed(() => ({
   dateLabel: 'Date',
   submitButtonText: 'Add Event',
   calendarWeekLabel: 'Week',
+  weekViewLabel: 'Week',
+  monthViewLabel: 'Month',
   todosLabel: 'To-Do',
   participantsLabel: 'Participants',
 }));
 
 const handleNewEvent = (event) => {
-  const newId = Math.max(...schedules.value.map(e => e.id), 0) + 1;
+  const newId = Math.max(...schedules.value.map((e) => e.id), 0) + 1;
   schedules.value.push({ ...event, id: newId });
 };
 
 const handleDeleteEvent = (id) => {
-  schedules.value = schedules.value.filter(event => event.id !== id);
+  schedules.value = schedules.value.filter((event) => event.id !== id);
 };
 
+// Replace by id — do NOT append, or you create a duplicate.
 const handleUpdateEvent = (updatedEvent) => {
-  const index = schedules.value.findIndex(e => e.id === updatedEvent.id);
+  const index = schedules.value.findIndex((e) => e.id === updatedEvent.id);
   if (index !== -1) {
     schedules.value[index] = updatedEvent;
   }
 };
 </script>
-
-<style>
-.my-calendar {
-  --form-bg-color: #f8fafc;
-  --button-bg-color: #3b82f6;
-  --label-color: #334155;
-}
-</style>
 ```
 
 ---
 
-## 🎨 Custom Form Slot
+## Time zones
 
-Replace the default form with your own design using the `form` slot. You get full access to the internal state and methods via **Scoped Slot Props**.
+The calendar follows the **store-UTC, render-local** model.
+
+- **Input:** provide events as absolute UTC timestamps via `startsAt` / `endsAt`
+  (ISO-8601 with `Z`). The `timeZone` prop controls the zone the grid renders in.
+- **Output:** drag & drop and form submit emit events whose `startsAt` / `endsAt`
+  are UTC. Legacy `date` / `start` / `end` fields are also filled in (in
+  `timeZone`) for backward compatibility.
+
+```vue
+<ScheduleForm :schedules="schedules" time-zone="Europe/Berlin" />
+```
+
+If `timeZone` is omitted, the browser's zone is used. For multi-user apps where
+everyone must see the same wall-clock time regardless of their machine, pass the
+zone explicitly.
+
+**Legacy fields still work.** If you provide `date` + `start` + `end` instead of
+`startsAt` / `endsAt`, they are interpreted as wall-clock time **in `timeZone`**
+and normalized to UTC internally. Prefer `startsAt` / `endsAt` for new code.
+
+---
+
+## Views
+
+The calendar has a **week** view (hour grid) and a **month** view (day cells).
+
+Switch via the built-in toggle buttons, or control it from the outside:
+
+```vue
+<!-- Uncontrolled: built-in buttons handle it -->
+<ScheduleForm :schedules="schedules" :additional-fields="fields" />
+
+<!-- Controlled -->
+<ScheduleForm v-model:view="view" :schedules="schedules" :additional-fields="fields" />
+```
+
+- Week view: events are positioned by time; overlapping events split into columns.
+- Month view: events appear as compact chips; up to three are shown per day, the
+  rest collapse into a "+N" indicator. Clicking a day number or "+N" opens the
+  week view of that day.
+
+Set the first day of the week with `week-starts-on` (`0` = Sunday, `1` = Monday,
+default `1`).
+
+---
+
+## Drag & drop
+
+Dragging is pointer-based. While dragging you get a live preview of the event at
+the snapped position and a floating tooltip showing the target time (week) or
+date (month). The event stays under the cursor where you grabbed it.
+
+On drop, an `update-event` event is emitted. **The host must persist it** by
+replacing the event in `schedules` (by `id`). The component does not keep a
+separate internal copy.
+
+---
+
+## Custom Form Slot
+
+Replace the default form with your own design using the `form` slot. You get full
+access to the internal state and methods via scoped slot props.
 
 ### Slot Props
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `newEvent` | `Ref<Partial<EventInfo>>` | Reactive event object for v-model binding |
-| `addEvent` | `(event?: Partial<EventInfo>) => void` | Submit function to add the event |
-| `additionalFields` | `Field[]` | Configured additional fields array |
-| `labels` | `LabelsAndSettings` | All label texts and settings |
-| `resetForm` | `() => void` | Reset form to initial state |
-
-### Example: Custom Styled Form
+| Prop               | Type                                   | Description                               |
+| ------------------ | -------------------------------------- | ----------------------------------------- |
+| `newEvent`         | `Ref<Partial<EventInfo>>`              | Reactive event object for v-model binding |
+| `addEvent`         | `(event?: Partial<EventInfo>) => void` | Submit function to add the event          |
+| `additionalFields` | `Field[]`                              | Configured additional fields array        |
+| `labels`           | `LabelsAndSettings`                    | All label texts and settings              |
+| `resetForm`        | `() => void`                           | Reset form to initial state               |
 
 ```vue
-<template>
-  <ScheduleForm 
-    :schedules="schedules" 
-    :additional-fields="additionalFields"
-    @submit-event="handleNewEvent"
-  >
-    <template #form="{ newEvent, addEvent, labels, resetForm }">
-      <div class="custom-form">
-        <h3>📅 Create New Event</h3>
-        
-        <div class="form-grid">
-          <input 
-            v-model="newEvent.title" 
-            type="text" 
-            placeholder="Event title..."
-            class="input-field"
-          />
-          
-          <input 
-            v-model="newEvent.date" 
-            type="date"
-            class="input-field"
-          />
-          
-          <div class="time-row">
-            <input v-model="newEvent.start" type="time" class="input-field" />
-            <span>to</span>
-            <input v-model="newEvent.end" type="time" class="input-field" />
-          </div>
-          
-          <select v-model="newEvent.room" class="input-field">
-            <option value="">Select room...</option>
-            <option value="Room 1">Room 1</option>
-            <option value="Room 2">Room 2</option>
-          </select>
-          
-          <input 
-            v-model="newEvent.color" 
-            type="color" 
-            class="color-picker"
-          />
-        </div>
-        
-        <div class="form-actions">
-          <button type="button" @click="resetForm" class="btn-secondary">
-            Reset
-          </button>
-          <button type="button" @click="addEvent()" class="btn-primary">
-            {{ labels.submitButtonText }}
-          </button>
-        </div>
-      </div>
-    </template>
-  </ScheduleForm>
-</template>
-
-<style scoped>
-.custom-form {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 24px;
-  border-radius: 16px;
-  margin-bottom: 20px;
-  color: white;
-}
-
-.custom-form h3 {
-  margin: 0 0 20px 0;
-  font-size: 1.25rem;
-}
-
-.form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.time-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.input-field {
-  padding: 12px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.color-picker {
-  width: 60px;
-  height: 40px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.form-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.btn-secondary {
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.btn-primary {
-  flex: 1;
-  padding: 12px 24px;
-  background: white;
-  border: none;
-  border-radius: 8px;
-  color: #764ba2;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-}
-</style>
+<ScheduleForm :schedules="schedules" :additional-fields="[]" @submit-event="handleNewEvent">
+  <template #form="{ newEvent, addEvent, labels, resetForm }">
+    <div class="custom-form">
+      <input v-model="newEvent.title" placeholder="Event title..." />
+      <input v-model="newEvent.date" type="date" />
+      <input v-model="newEvent.start" type="time" />
+      <input v-model="newEvent.end" type="time" />
+      <button type="button" @click="resetForm">Reset</button>
+      <button type="button" @click="addEvent()">{{ labels.submitButtonText }}</button>
+    </div>
+  </template>
+</ScheduleForm>
 ```
 
-### Example: Minimal Form (Only Required Fields)
+To remove the form completely, pass an empty `form` slot:
 
 ```vue
-<template>
-  <ScheduleForm :schedules="schedules" :additional-fields="[]">
-    <template #form="{ newEvent, addEvent }">
-      <div class="minimal-form">
-        <input v-model="newEvent.title" placeholder="Title" />
-        <input v-model="newEvent.date" type="date" />
-        <input v-model="newEvent.start" type="time" />
-        <input v-model="newEvent.end" type="time" />
-        <button @click="addEvent()">Add</button>
-      </div>
-    </template>
-  </ScheduleForm>
-</template>
-```
-
-### Example: No Form (Calendar Only)
-
-```vue
-<template>
-  <ScheduleForm :schedules="schedules" :additional-fields="[]">
-    <!-- Empty slot removes the form completely -->
-    <template #form></template>
-  </ScheduleForm>
-</template>
+<ScheduleForm :schedules="schedules" :additional-fields="[]">
+  <template #form></template>
+</ScheduleForm>
 ```
 
 ---
 
-## 🪟 Custom Popup Slot
+## Custom Popup Slot
 
 Customize the event details popup with the `popup-calendar` slot.
 
 ```vue
-<template>
-  <ScheduleForm 
-    :schedules="schedules"
-    :additional-fields="additionalFields"
-    :popup-visible="isPopupVisible"
-    :popup-event="selectedEvent"
-    @show-info="openPopup"
-    @close-popup="closePopup"
-  >
-    <template #popup-calendar>
-      <div v-if="isPopupVisible && selectedEvent" class="my-popup-overlay">
-        <div class="my-popup">
-          <h2>{{ selectedEvent.title }}</h2>
-          <p>📅 {{ selectedEvent.date }}</p>
-          <p>🕐 {{ selectedEvent.start }} - {{ selectedEvent.end }}</p>
-          <p>📍 {{ selectedEvent.room }}</p>
-          
-          <button @click="closePopup">Close</button>
-        </div>
+<ScheduleForm
+  :schedules="schedules"
+  :additional-fields="additionalFields"
+  :popup-visible="isPopupVisible"
+  :popup-event="selectedEvent"
+  @show-info="openPopup"
+  @close-popup="closePopup"
+>
+  <template #popup-calendar>
+    <div v-if="isPopupVisible && selectedEvent" class="my-popup-overlay">
+      <div class="my-popup">
+        <h2>{{ selectedEvent.title }}</h2>
+        <button @click="closePopup">Close</button>
       </div>
-    </template>
-  </ScheduleForm>
-</template>
-
-<script setup>
-const isPopupVisible = ref(false);
-const selectedEvent = ref(null);
-
-const openPopup = (event) => {
-  selectedEvent.value = event;
-  isPopupVisible.value = true;
-};
-
-const closePopup = () => {
-  isPopupVisible.value = false;
-  selectedEvent.value = null;
-};
-</script>
+    </div>
+  </template>
+</ScheduleForm>
 ```
 
 ---
 
-## 📋 Props
+## Props
 
-### Required Props
+### Required
 
-| Prop | Type | Description |
-|------|------|-------------|
-| `schedules` | `EventInfo[]` | Array of events to display on the calendar |
-| `additionalFields` | `Field[]` | Additional fields for the event form |
+| Prop               | Type          | Description                                |
+| ------------------ | ------------- | ------------------------------------------ |
+| `schedules`        | `EventInfo[]` | Array of events to display on the calendar |
+| `additionalFields` | `Field[]`     | Additional fields for the event form       |
 
-### Optional Props
+### Optional
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `customClass` | `string` | `''` | Custom CSS class for styling |
-| `customStyles` | `Record<string, any>` | `{}` | Inline styles for the root element |
-| `weekdays` | `string[]` | `['Monday', ...]` | Custom weekday names |
-| `eventTitleColor` | `string` | `'#000'` | Event title text color |
-| `eventTitleSize` | `string` | `'16px'` | Event title font size |
-| `popupFields` | `string[]` | `[]` | Fields to show in the default popup |
-| `labelsAndSettings` | `LabelsAndSettings` | See below | Labels and text customization |
-| `placeholderSettings` | `object` | `{}` | Placeholder texts for popup inputs |
-| `popupVisible` | `boolean` | `false` | Control popup visibility externally |
-| `popupEvent` | `EventInfo \| null` | `null` | Current event for the popup |
+| Prop                  | Type                  | Default            | Description                                            |
+| --------------------- | --------------------- | ------------------ | ----------------------------------------------------- |
+| `timeZone`            | `string`              | browser zone       | IANA zone the calendar renders in                     |
+| `weekStartsOn`        | `0 \| 1`              | `1` (Monday)       | First day of the week (`0` = Sunday)                  |
+| `view`                | `'week' \| 'month'`   | `'week'`           | Active view. Supports `v-model:view`                  |
+| `customClass`         | `string`              | `''`               | Custom CSS class for theming                          |
+| `customStyles`        | `Record<string, any>` | `{}`               | Inline styles for the root element                    |
+| `weekdays`            | `string[]`            | `['Monday', ...]`  | Custom weekday names                                  |
+| `eventTitleColor`     | `string`              | `'#000'`           | Event title text color                               |
+| `eventTitleSize`      | `string`              | `'16px'`           | Event title font size                                |
+| `popupFields`         | `string[]`            | `[]`               | Fields to show in the default popup                  |
+| `labelsAndSettings`   | `LabelsAndSettings`   | see below          | Labels and text customization                        |
+| `placeholderSettings` | `object`              | `{}`               | Placeholder texts for popup inputs                   |
+| `popupVisible`        | `boolean`             | `false`            | Control popup visibility externally                  |
+| `popupEvent`          | `EventInfo \| null`   | `null`             | Current event for the popup                          |
 
 ### Labels and Settings
 
-```typescript
+```ts
 interface LabelsAndSettings {
-  startTimeLabel?: string;      // Default: 'Start Time'
-  endTimeLabel?: string;        // Default: 'End Time'
-  dateLabel?: string;           // Default: 'Date'
-  submitButtonText?: string;    // Default: 'Add Entry'
-  calendarWeekLabel?: string;   // Default: 'CW'
-  todosLabel?: string;          // Default: 'To-Do'
-  participantsLabel?: string;   // Default: 'Teammates'
+  startTimeLabel?: string;    // 'Start Time'
+  endTimeLabel?: string;      // 'End Time'
+  dateLabel?: string;         // 'Date'
+  submitButtonText?: string;  // 'Add Entry'
+  calendarWeekLabel?: string; // 'CW'
+  todosLabel?: string;        // 'To-Do'
+  participantsLabel?: string; // 'Teammates'
+  weekViewLabel?: string;     // 'Week'
+  monthViewLabel?: string;    // 'Month'
 }
 ```
 
 ---
 
-## 📡 Events
+## Events
 
-| Event | Payload | Description |
-|-------|---------|-------------|
-| `submit-event` | `EventInfo` | New event submitted via form |
-| `update-event` | `EventInfo` | Event updated (drag & drop or edit) |
-| `handle-delete` | `number` | Event ID to delete |
-| `show-info` | `EventInfo` | Event details requested |
-| `close-popup` | – | Popup closed |
-| `update:todos` | `{ todos: string[], eventId: number }` | Todos changed |
-| `update:participants` | `{ participants: string[], eventId: number }` | Participants changed |
-
----
-
-## 🎭 Slots
-
-| Slot | Scoped Props | Description |
-|------|--------------|-------------|
-| `form` | `{ newEvent, addEvent, additionalFields, labels, resetForm }` | Custom event form |
-| `popup-calendar` | – | Custom popup for event details |
+| Event                 | Payload                                       | Description                          |
+| --------------------- | --------------------------------------------- | ------------------------------------ |
+| `submit-event`        | `EventInfo`                                   | New event submitted via form         |
+| `update-event`        | `EventInfo`                                   | Event updated (drag & drop or edit)  |
+| `handle-delete`       | `number`                                      | Event ID to delete                   |
+| `show-info`           | `EventInfo`                                   | Event details requested              |
+| `close-popup`         | –                                             | Popup closed                         |
+| `update:view`         | `'week' \| 'month'`                           | Active view changed (`v-model:view`) |
+| `update:todos`        | `{ todos: string[], eventId: number }`        | Todos changed                        |
+| `update:participants` | `{ participants: string[], eventId: number }` | Participants changed                 |
 
 ---
 
-## 📊 Type Definitions
+## Slots
+
+| Slot             | Scoped Props                                                  | Description                    |
+| ---------------- | ------------------------------------------------------------- | ------------------------------ |
+| `form`           | `{ newEvent, addEvent, additionalFields, labels, resetForm }` | Custom event form              |
+| `popup-calendar` | –                                                             | Custom popup for event details |
+
+---
+
+## Type Definitions
 
 ### EventInfo
 
-```typescript
+```ts
 interface EventInfo {
   id: number;
   title: string;
-  date: string;           // Format: 'YYYY-MM-DD'
-  start: string;          // Format: 'HH:MM'
-  end: string;            // Format: 'HH:MM'
-  color: string;          // Hex color, e.g. '#3b82f6'
+
+  // Preferred: absolute UTC timestamps (ISO-8601 with Z).
+  startsAt?: string; // e.g. '2026-06-28T07:00:00Z'
+  endsAt?: string;
+
+  // Legacy: interpreted as wall-clock time in `timeZone`.
+  date?: string;  // 'YYYY-MM-DD'
+  start?: string; // 'HH:MM'
+  end?: string;   // 'HH:MM'
+
+  color?: string;
   info?: string;
   todos?: string[];
   participants?: string[];
-  [key: string]: any;     // Additional custom fields
+  [key: string]: any;
 }
 ```
 
+> Each event needs a **unique `id`**. Duplicate ids cause events to share layout
+> and styling.
+
 ### Field
 
-```typescript
+```ts
 interface Field {
   id: string;
   label: string;
@@ -449,159 +351,112 @@ interface Field {
 
 ---
 
-## 🎨 Styling
+## Styling
 
-### CSS Variables
-
-Override these variables via `customClass`:
+Override CSS variables via `custom-class`. The **popup** renders outside the
+calendar root (fixed position), so its `--popup-*` variables must be set on a
+**shared ancestor** (e.g. `:root`).
 
 ```vue
 <ScheduleForm custom-class="my-calendar" ... />
 ```
 
 ```css
+/* Calendar root theming */
 .my-calendar {
+  --font-family: 'Inter', system-ui, sans-serif;
+
+  /* Accent (active toggle, focus, "today") */
+  --accent-color: #007bff;
+  --accent-contrast: #ffffff;
+
+  /* Grid & events */
+  --grid-border-color: #cccccc;
+  --calendar-primary-color: #a4d8ff;
+  --event-border-radius: 8px;
+  --event-title-color: #000000;
+  --event-title-size: 16px;
+
+  /* Buttons */
+  --button-bg-color: var(--accent-color);
+  --button-hover-bg-color: #0056b3;
+  --button-color: var(--accent-contrast);
+  --button-border-radius: 6px;
+
+  /* Navigation */
+  --arrow-button-bg: var(--accent-color);
+  --arrow-button-color: var(--accent-contrast);
+  --current-week-color: #000000;
+
+  /* View toggle */
+  --view-btn-active-bg: var(--accent-color);
+  --view-btn-active-color: var(--accent-contrast);
+
+  /* Month view */
+  --month-cell-min-height: 96px;
+  --month-today-bg: color-mix(in srgb, var(--accent-color) 12%, transparent);
+  --month-chip-color: #000000;
+
+  /* Drag tooltip / preview */
+  --drag-tooltip-bg: var(--accent-color);
+  --drag-tooltip-color: var(--accent-contrast);
+  --event-preview-border: 2px dashed rgba(0, 0, 0, 0.35);
+
   /* Form */
   --form-bg-color: #ffffff;
-  --form-padding: 1rem;
-  --form-border-radius: 8px;
-  --form-border: 1px solid #ccc;
-  
-  /* Labels */
   --label-color: #333333;
-  --label-font-weight: bold;
-  
-  /* Inputs */
-  --input-height: 40px;
-  --input-padding: 0.5rem;
-  --input-font-size: 1rem;
   --input-border: 1px solid #ccc;
   --input-border-radius: 6px;
-  --input-bg-color: #ffffff;
-  --input-color: #000000;
-  
-  /* Buttons */
-  --button-bg-color: #007bff;
-  --button-hover-bg-color: #0056b3;
-  --button-color: #ffffff;
-  --button-padding: 0.6rem 1rem;
-  --button-border-radius: 6px;
-  
-  /* Calendar */
-  --calendar-primary-color: #a4d8ff;
-  --grid-border-color: #cccccc;
-  --event-border-radius: 8px;
-  
-  /* Navigation */
-  --arrow-button-bg: #007bff;
-  --arrow-button-color: #ffffff;
-  --current-week-color: #000000;
-  
-  /* Popup */
+
+  /* Danger (delete) */
+  --danger-bg: #e53e3e;
+  --danger-text: #ffffff;
+}
+
+/* Popup theming — must be global because the popup is teleported */
+:root {
   --popup-bg: #ffffff;
   --popup-overlay-bg: rgba(0, 0, 0, 0.5);
   --popup-border-radius: 5px;
-  
-  /* Danger */
-  --danger-bg: #e53e3e;
-  --danger-text: #ffffff;
+  --popup-title-color: #222222;
+  --popup-label-color: #333333;
+  --popup-input-focus-border: var(--accent-color, #007bff);
+  --popup-save-bg: #007bff;
+  --popup-save-hover-bg: #0056b3;
 }
 ```
 
 ### Dark Mode
 
-**Option A: Per Component**
+**Per component:**
 
 ```vue
 <ScheduleForm :custom-class="isDark ? 'my-calendar dark' : 'my-calendar'" ... />
 ```
 
-**Option B: Global (affects entire page)**
+**Global:**
 
-```typescript
-// Enable dark mode
-document.documentElement.classList.add('dark');
-
-// Disable dark mode
-document.documentElement.classList.remove('dark');
-```
-
-### Theme Toggle Example
-
-```vue
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-
-const isDark = ref(false);
-
-const syncTheme = () => {
-  document.documentElement.classList.toggle('dark', isDark.value);
-};
-
-const toggleTheme = () => {
-  isDark.value = !isDark.value;
-  syncTheme();
-};
-
-onMounted(() => {
-  // Initialize from system preference
-  isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  syncTheme();
-});
-
-const calendarClass = computed(() => 
-  isDark.value ? 'my-calendar dark' : 'my-calendar'
-);
-</script>
-
-<template>
-  <button @click="toggleTheme">
-    {{ isDark ? '☀️ Light' : '🌙 Dark' }}
-  </button>
-  
-  <ScheduleForm :custom-class="calendarClass" ... />
-</template>
+```js
+document.documentElement.classList.add('dark');    // enable
+document.documentElement.classList.remove('dark'); // disable
 ```
 
 ---
 
-## 📸 Screenshots
+## Roadmap
 
-### Light Mode
-![Light Mode](https://i.postimg.cc/PJ7SrJr6/Bildschirmfoto-2025-08-18-um-19-11-38.png)
-
-### Dark Mode
-![Dark Mode](https://i.postimg.cc/placeholder-dark.png)
-
----
-
-## 🗺️ Roadmap
-
-- Quickly jump back to the current week
-- Visual indicator for the current day
-- Click on empty cell to create a new event
-- Full month overview with event indicators
+- Read-only mode (`:readonly`) to disable creating and dragging
+- `@range-change` event for lazy-loading events per visible range
+- `event` scoped slot for fully custom event markup
+- Recurring events (RRULE)
+- "Jump to today" and a current-time indicator
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+Contributions are welcome. Please open an issue or submit a pull request.
 
----
+## License
 
-## 👨‍💻 About Me
-
-I'm a motivated developer working as a full-stack engineer in the cloud department of a cybersecurity company. I'm dedicated to building secure and robust applications while continuously expanding my skills.
-
----
-
-## 📄 License
-
-[MIT](https://choosealicense.com/licenses/mit/)
-
----
-
-## 💬 Support
-
-If you have questions or need help, please [open an issue](https://github.com/yourusername/vue3-mycalendar/issues).
+[MIT](./LICENSE)
