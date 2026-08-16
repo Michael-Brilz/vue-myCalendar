@@ -26,6 +26,8 @@
         :schedules="schedules"
         :additional-fields="additionalFields"
         :custom-class="scheduleFormClass"
+        time-zone="Europe/Berlin"
+        :week-starts-on="1"
         :labels-and-settings="labelsAndSettings"
         :popup-fields="popupFields"
         :popup-visible="isPopupVisible"
@@ -65,9 +67,9 @@ const schedules = ref<EventInfo[]>([
   {
     id: 1,
     title: 'Meeting',
-    date: '2025-07-04',
+    date: '2026-08-14',
     start: '09:00',
-    end: '10:00',
+    end: '20:00',
     teacher: 'Malika Heaney',
     room: 'Room 1',
     color: '#e2Be33',
@@ -77,13 +79,25 @@ const schedules = ref<EventInfo[]>([
   {
     id: 2,
     title: 'Workshop',
-    date: '2025-07-04',
+    date: '2026-08-14',
     start: '13:00',
-    end: '15:00',
+    end: '18:00',
     teacher: 'John Doe',
     room: 'Room 2',
     color: '#33C3FF',
     todos: ['Set up the projector'],
+    participants: ['John', 'Lena']
+  },
+  {
+    id: 3,
+    title: 'Daily',
+    date: '2026-08-14',
+    start: '08:00',
+    end: '10:00',
+    teacher: 'John Doe',
+    room: 'Online',
+    color: '#df3cae',
+    todos: [],
     participants: ['John', 'Lena']
   },
 ]);
@@ -165,6 +179,27 @@ const handleUpdatedParticipants = ({ participants, eventId }: { participants: st
 
 /* Custom-Variablen fürs Kind */
 .customize-schedule-form {
+  --font-family: 'Inter', system-ui, sans-serif;
+
+  --accent-color: #E30613;
+  --accent-contrast: #ffffff;
+
+  --grid-border-color: #e0e0e0;
+  --calendar-primary-color: #f3c6c9;
+  --event-border-radius: 6px;
+  --event-title-color: #1a1a1a;
+
+  --button-bg-color: #E30613;
+  --button-hover-bg-color: #b3050f;
+  --button-color: #ffffff;
+
+  --arrow-button-bg: #E30613;
+  --arrow-button-color: #ffffff;
+
+  --month-today-bg: color-mix(in srgb, #E30613 12%, transparent);
+  --month-chip-color: #1a1a1a;
+
+  /* deine bestehenden Form-Variablen */
   --form-padding: 20px;
   --form-border-radius: 10px;
   --form-border: 1px solid #333;
@@ -183,5 +218,18 @@ const handleUpdatedParticipants = ({ participants, eventId }: { participants: st
   --label-color: #ffffff;
   --form-border: 1px solid rgba(255,255,255,0.15);
   --input-border: 1px solid rgba(255,255,255,0.2);
+}
+</style>
+
+<!-- Popup renders outside the calendar root (fixed position),
+     so its variables must live on a shared ancestor, not on .customize-schedule-form -->
+<style>
+:root {
+  --popup-bg: #ffffff;
+  --popup-title-color: #E30613;
+  --popup-label-color: #333333;
+  --popup-input-focus-border: #E30613;
+  --popup-save-bg: #E30613;
+  --popup-save-hover-bg: #b3050f;
 }
 </style>

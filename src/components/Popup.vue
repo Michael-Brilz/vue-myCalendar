@@ -70,8 +70,8 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, computed } from 'vue';
-import { usePopupLogic } from '../composables/usePopupLogic';
-import type { EventInfo, PopupProps } from '../types/EventInterfaces';
+import { usePopupLogic } from '@/composables/usePopupLogic';
+import type { EventInfo, PopupProps } from '@/types/EventInterfaces';
 
 const props = defineProps<PopupProps & {
   todosLabel?: string;
