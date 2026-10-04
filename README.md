@@ -10,13 +10,24 @@ full theming via CSS variables.
 ## Features
 
 - Week view with an hour grid **and** a month view (toggle or `v-model:view`)
+- **Current time indicator** — live red line in the week view
+- **"Today" button** — jump back to the current week/month instantly
+- **Click-to-create** — click any empty time slot to pre-fill date & time in the form
+- **All-day events** — shown in a dedicated banner row above the hour grid
 - Time-zone-correct rendering: events stored in UTC, displayed in a target zone
 - Smooth pointer-based drag & drop with a live preview and a time tooltip
 - Overlapping events render side by side instead of stacking
+- **Rich event cards** in the week view: title, time range, location badge, link indicator, participant count
+- **Modern event detail popup:** colored header, date/time, location, clickable online links, participants as chips, todos as a styled list
+- **`readonly` prop** — display-only mode (no form, no drag, no edit/delete)
+- **`event` scoped slot** — fully custom event block markup
+- **`@range-change` event** — emits the visible date range on every navigation, ideal for lazy-loading
+- **`@slot-click` event** — emits when an empty time slot is clicked
+- Mobile-friendly: week view scrolls horizontally on small screens
 - Customizable event forms via scoped slots
-- Customizable event popup with todos & participants
 - Full theming through CSS variables (light & dark mode)
 - TypeScript support
+- SSR-compatible (Nuxt / Vite SSR)
 
 ## Installation
 
@@ -265,6 +276,7 @@ Customize the event details popup with the `popup-calendar` slot.
 | `placeholderSettings` | `object`              | `{}`               | Placeholder texts for popup inputs                   |
 | `popupVisible`        | `boolean`             | `false`            | Control popup visibility externally                  |
 | `popupEvent`          | `EventInfo \| null`   | `null`             | Current event for the popup                          |
+| `readonly`            | `boolean`             | `false`            | Disables form, drag & drop, edit and delete          |
 
 ### Labels and Settings
 
@@ -288,23 +300,26 @@ interface LabelsAndSettings {
 
 | Event                 | Payload                                       | Description                          |
 | --------------------- | --------------------------------------------- | ------------------------------------ |
-| `submit-event`        | `EventInfo`                                   | New event submitted via form         |
-| `update-event`        | `EventInfo`                                   | Event updated (drag & drop or edit)  |
-| `handle-delete`       | `number`                                      | Event ID to delete                   |
-| `show-info`           | `EventInfo`                                   | Event details requested              |
-| `close-popup`         | –                                             | Popup closed                         |
-| `update:view`         | `'week' \| 'month'`                           | Active view changed (`v-model:view`) |
-| `update:todos`        | `{ todos: string[], eventId: number }`        | Todos changed                        |
-| `update:participants` | `{ participants: string[], eventId: number }` | Participants changed                 |
+| `submit-event`        | `EventInfo`                                               | New event submitted via form         |
+| `update-event`        | `EventInfo`                                               | Event updated (drag & drop or edit)  |
+| `handle-delete`       | `number`                                                  | Event ID to delete                   |
+| `show-info`           | `EventInfo`                                               | Event details requested              |
+| `close-popup`         | –                                                         | Popup closed                         |
+| `update:view`         | `'week' \| 'month'`                                       | Active view changed (`v-model:view`) |
+| `update:todos`        | `{ todos: string[], eventId: number }`                    | Todos changed                        |
+| `update:participants` | `{ participants: string[], eventId: number }`             | Participants changed                 |
+| `slot-click`          | `{ date: string; start?: string; end?: string }`          | Empty slot clicked (click-to-create) |
+| `range-change`        | `{ start: string; end: string; view: 'week' \| 'month' }` | Visible date range changed           |
 
 ---
 
 ## Slots
 
-| Slot             | Scoped Props                                                  | Description                    |
-| ---------------- | ------------------------------------------------------------- | ------------------------------ |
-| `form`           | `{ newEvent, addEvent, additionalFields, labels, resetForm }` | Custom event form              |
-| `popup-calendar` | –                                                             | Custom popup for event details |
+| Slot             | Scoped Props                                                  | Description                            |
+| ---------------- | ------------------------------------------------------------- | -------------------------------------- |
+| `form`           | `{ newEvent, addEvent, additionalFields, labels, resetForm }` | Custom event form                      |
+| `popup-calendar` | –                                                             | Custom popup for event details         |
+| `event`          | `{ event: EventInfo, timeRange: string }`                     | Custom markup inside each event block  |
 
 ---
 
@@ -327,15 +342,36 @@ interface EventInfo {
   end?: string;   // 'HH:MM'
 
   color?: string;
-  info?: string;
+  description?: string; // shown as a text block in the popup
+  info?: string;        // alias for description
+  location?: string;    // displayed in the event card and popup (with location icon)
+  link?: string;        // rendered as a clickable anchor in the popup
+  organizer?: string;   // shown in the popup with a person icon
   todos?: string[];
   participants?: string[];
-  [key: string]: any;
+  [key: string]: any;   // any additional custom fields
 }
 ```
 
 > Each event needs a **unique `id`**. Duplicate ids cause events to share layout
 > and styling.
+
+#### Popup display
+
+The built-in popup auto-detects these fields and renders them with dedicated UI:
+
+| Field         | Display                                              |
+| ------------- | ---------------------------------------------------- |
+| `title`       | Hero heading with a colored left border              |
+| `date`/`startsAt` | Date and time row with calendar icon            |
+| `location`    | Editable location field with pin icon                |
+| `link`        | Clickable anchor (opens new tab)                     |
+| `organizer`   | Editable person field with user icon                 |
+| `description` | Text block below the meta section                    |
+| `participants` | Removable chips + add-input                         |
+| `todos`       | Bullet list with per-item delete + add-input         |
+
+Any other fields in `popupFields` are rendered as generic labeled inputs.
 
 ### Field
 
@@ -450,6 +486,7 @@ document.documentElement.classList.remove('dark'); // disable
 - `event` scoped slot for fully custom event markup
 - Recurring events (RRULE)
 - "Jump to today" and a current-time indicator
+- `allDay` event support in month view
 
 ---
 

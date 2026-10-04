@@ -12,6 +12,11 @@
     >
       <!-- DEFAULT FORM -->
       <form class="form-container" @submit.prevent="addEvent">
+        <div class="form-group form-group--full">
+          <label for="title" class="form-label">{{ labelsAndSettings.titleLabel }}:</label>
+          <input id="title" v-model="newEvent.title" type="text" required class="form-input" :placeholder="labelsAndSettings.titleLabel" />
+        </div>
+
         <div v-for="field in additionalFields" :key="field.id" class="form-group">
           <label :for="field.id" class="form-label">{{ field.label }}:</label>
 
@@ -58,6 +63,7 @@
     <!-- CALENDAR -->
     <div class="calendar">
       <div class="navigation">
+        <button type="button" class="today-btn" @click="goToToday">{{ labelsAndSettings.todayButtonLabel }}</button>
         <button type="button" class="arrow-button" @click="goPrev">&lt;</button>
         <span class="current-week">{{ headerLabel }}</span>
         <button type="button" class="arrow-button" @click="goNext">&gt;</button>
@@ -81,9 +87,11 @@
       </div>
 
       <!-- WEEK VIEW -->
-      <div v-if="activeView === 'week'" class="hours-and-days">
+      <div v-if="activeView === 'week'" class="week-scroll-wrapper">
+      <div class="hours-and-days">
         <div class="hours">
           <div class="empty-slot"></div>
+          <div v-if="hasAllDayEventsThisWeek" class="allday-spacer"></div>
           <div v-for="hour in hours" :key="hour" class="hour">{{ hour }}</div>
         </div>
 
@@ -95,14 +103,38 @@
             </li>
           </ul>
 
+          <!-- All-day events row -->
+          <div v-if="hasAllDayEventsThisWeek" class="allday-row">
+            <div v-for="(day, dayIndex) in 7" :key="dayIndex" class="allday-day">
+              <button
+                  v-for="event in (weekAllDayEvents[getDateForWeekday(dayIndex)] || [])"
+                  :key="'ad-' + event.id"
+                  type="button"
+                  class="allday-chip"
+                  :style="{ backgroundColor: event.color || 'var(--calendar-primary-color)' }"
+                  @click="showEventInfo(event)"
+              >{{ event.title }}</button>
+            </div>
+          </div>
+
           <div class="days">
             <div
                 v-for="(day, dayIndex) in 7"
                 :key="dayIndex"
                 class="day"
                 :data-ymd="getDateForWeekday(dayIndex)"
+                @click="onDayClick($event, getDateForWeekday(dayIndex))"
             >
               <div v-for="hour in hours" :key="hour" class="hour"></div>
+
+              <!-- Current time indicator -->
+              <div
+                  v-if="getDateForWeekday(dayIndex) === todayYmd && currentTimeMinutes >= 0"
+                  class="current-time-line"
+                  :style="{ top: `${(currentTimeMinutes * PX_PER_HOUR) / 60}px` }"
+              >
+                <div class="current-time-dot"></div>
+              </div>
 
               <!-- Live preview ghost -->
               <div
@@ -115,24 +147,30 @@
               </div>
 
               <div
-                  v-for="event in events[getDateForWeekday(dayIndex)] || []"
+                  v-for="event in (weekTimedEvents[getDateForWeekday(dayIndex)] || [])"
                   :key="'ev-' + event.id"
                   class="event"
                   :style="getEventStyle(event)"
                   @pointerdown="onEventPointerDown($event, event, getDateForWeekday(dayIndex))"
+                  @click.stop="showEventInfo(event)"
               >
-                <span :style="{ color: eventTitleColor, fontSize: eventTitleSize }">
-                  {{ event.title }}
-                </span>
-                <br />
-                <button type="button" class="info-button" @click="showEventInfo(event)">
-                  <img :src="myLogoSrc" alt="info" class="small-logo" />
-                </button>
+                <slot name="event" :event="event" :time-range="getEventTimeRange(event)">
+                  <div class="event-inner">
+                    <span class="event-title" :style="{ color: eventTitleColor, fontSize: eventTitleSize }">{{ event.title }}</span>
+                    <span class="event-time-label">{{ getEventTimeRange(event) }}</span>
+                    <div class="event-meta-row">
+                      <span v-if="event.location" class="event-meta-badge">{{ event.location }}</span>
+                      <span v-if="event.link" class="event-meta-badge event-meta-badge--link">&#x1F517;</span>
+                      <span v-if="event.participants?.length" class="event-meta-badge">{{ event.participants.length }} &#128101;</span>
+                    </div>
+                  </div>
+                </slot>
               </div>
             </div>
           </div>
         </div>
       </div>
+      </div><!-- /week-scroll-wrapper -->
 
       <!-- MONTH VIEW -->
       <div v-else class="month-view">
@@ -152,8 +190,9 @@
                 'is-today': cell.isToday,
                 'drop-target': drag?.active && drag.mode === 'month' && drag.previewYmd === cell.ymd,
               }]"
+              @click="onMonthCellClick($event, cell.ymd)"
           >
-            <button type="button" class="month-daynum" @click="goToDay(cell.ymd)">
+            <button type="button" class="month-daynum" @click.stop="goToDay(cell.ymd)">
               {{ cell.day }}
             </button>
 
@@ -165,7 +204,7 @@
                   class="month-chip"
                   :style="{ backgroundColor: event.color || 'var(--calendar-primary-color)' }"
                   @pointerdown="onEventPointerDown($event, event, cell.ymd)"
-                  @click="showEventInfo(event)"
+                  @click.stop="showEventInfo(event)"
               >
                 <span class="month-chip-time">{{ chipTime(event) }}</span>
                 <span class="month-chip-title">{{ event.title }}</span>
@@ -200,21 +239,24 @@
     <!-- DEFAULT POPUP -->
     <Popup
         v-else
-        :visible="popupVisible"
-        :eventData="popupEvent"
+        :visible="effectivePopupVisible"
+        :eventData="effectivePopupEvent"
+        :createMode="isCreateMode"
         :popupFields="popupFields || []"
+        :readonly="props.readonly"
         closeButtonText="Close"
         :todosLabel="labelsAndSettings.todosLabel || 'To-Do'"
         :participantsLabel="labelsAndSettings.participantsLabel || 'Teammates'"
-        :todos="popupEvent?.todos || []"
-        :participants="popupEvent?.participants || []"
+        :todos="effectivePopupEvent.todos || []"
+        :participants="effectivePopupEvent.participants || []"
         :todoPlaceholder="placeholderSettings.todo || 'New To-do...'"
         :participantPlaceholder="placeholderSettings.participant || 'Add Participant...'"
         @update:todos="(val) => emit('update:todos', val)"
         @update:participants="(val) => emit('update:participants', val)"
-        @close-popup="closeEventInfoPopup"
+        @close-popup="handlePopupClose"
         @handle-delete="emitDeleteEvent"
         @update-event="handlePopupUpdate"
+        @submit-event="handleCreateFromPopup"
     />
   </div>
 </template>
@@ -262,6 +304,7 @@ const props = withDefaults(
       timeZone?: string;
       weekStartsOn?: 0 | 1;
       view?: CalendarView;
+      readonly?: boolean;
     }>(),
     {
       customClass: '',
@@ -283,6 +326,7 @@ const props = withDefaults(
       timeZone: () => Intl.DateTimeFormat().resolvedOptions().timeZone,
       weekStartsOn: 1,
       view: undefined,
+      readonly: false,
     }
 );
 
@@ -299,6 +343,8 @@ const emit = defineEmits<{
   'update:todos': [payload: { todos: string[]; eventId: number }];
   'update:participants': [payload: { participants: string[]; eventId: number }];
   'update:view': [view: CalendarView];
+  'slot-click': [payload: { date: string; start?: string; end?: string }];
+  'range-change': [payload: { start: string; end: string; view: CalendarView }];
 }>();
 
 // ============================================================================
@@ -355,6 +401,16 @@ const drag = ref<DragState | null>(null);
 // so a move doesn't accidentally open the popup.
 let dragJustEnded = false;
 
+// Current time indicator
+const currentTimeMinutes = ref(-1);
+let timeUpdateInterval: ReturnType<typeof setInterval> | null = null;
+
+// Internal create-mode popup state
+const internalCreateVisible = ref(false);
+const internalCreateEvent = ref<EventInfo>({
+  id: 0, title: '', date: '', start: '', end: '', color: '', todos: [], participants: [],
+});
+
 // ============================================================================
 // Computed
 // ============================================================================
@@ -389,11 +445,22 @@ const labelsAndSettings = computed(() => ({
   participantsLabel: props.labelsAndSettings?.participantsLabel,
   weekViewLabel: props.labelsAndSettings?.weekViewLabel || 'Week',
   monthViewLabel: props.labelsAndSettings?.monthViewLabel || 'Month',
+  titleLabel: props.labelsAndSettings?.titleLabel || 'Title',
+  todayButtonLabel: props.labelsAndSettings?.todayButtonLabel || 'Today',
 }));
 
 const placeholderSettings = computed(() => props.placeholderSettings || {});
 const popupVisible = computed(() => props.popupVisible);
 const popupEvent = computed(() => props.popupEvent);
+
+// Merges external popup state with internal create-mode popup
+const isCreateMode = computed(() => internalCreateVisible.value);
+const effectivePopupVisible = computed(() => props.popupVisible || internalCreateVisible.value);
+const effectivePopupEvent = computed<EventInfo>(() =>
+  internalCreateVisible.value
+    ? internalCreateEvent.value
+    : (props.popupEvent ?? { id: 0, title: '' } as EventInfo)
+);
 
 const weekStartYmd = computed(() =>
     startOfWeekYmd(anchorDate.value, timeZone.value, weekStartsOn.value)
@@ -578,10 +645,36 @@ function computeDayLayout(
   return result;
 }
 
+const todayYmd = computed(() => zonedYmd(new Date(), timeZone.value));
+
+// Split events for week view: timed events go in the grid, allDay events in the banner
+const weekTimedEvents = computed(() => {
+  const result: Record<string, EventInfo[]> = {};
+  for (const [ymd, evs] of Object.entries(events.value)) {
+    const timed = evs.filter(e => !e.allDay);
+    if (timed.length) result[ymd] = timed;
+  }
+  return result;
+});
+
+const weekAllDayEvents = computed(() => {
+  const result: Record<string, EventInfo[]> = {};
+  for (const [ymd, evs] of Object.entries(events.value)) {
+    const allDay = evs.filter(e => e.allDay);
+    if (allDay.length) result[ymd] = allDay;
+  }
+  return result;
+});
+
+const hasAllDayEventsThisWeek = computed(() =>
+  Array.from({ length: 7 }, (_, i) => getDateForWeekday(i))
+    .some(ymd => (weekAllDayEvents.value[ymd] ?? []).length > 0)
+);
+
 const overlapLayout = computed(() => {
   const map: Record<number, { col: number; cols: number }> = {};
-  for (const ymd of Object.keys(events.value)) {
-    Object.assign(map, computeDayLayout(events.value[ymd]));
+  for (const ymd of Object.keys(weekTimedEvents.value)) {
+    Object.assign(map, computeDayLayout(weekTimedEvents.value[ymd]));
   }
   return map;
 });
@@ -704,6 +797,60 @@ const chipTime = (event: EventInfo): string => {
   const instants = eventInstants(event);
   if (!instants) return '';
   return formatHm(instants.start, timeZone.value);
+};
+
+const getEventTimeRange = (event: EventInfo): string => {
+  const instants = eventInstants(event);
+  if (!instants) return '';
+  return `${formatHm(instants.start, timeZone.value)} – ${formatHm(instants.end, timeZone.value)}`;
+};
+
+const goToToday = () => { anchorDate.value = new Date(); };
+
+const onDayClick = (e: MouseEvent, ymd: string) => {
+  if (props.readonly) return;
+  if (dragJustEnded) return;
+  if ((e.target as HTMLElement).closest('.event, .allday-chip')) return;
+
+  const dayEl = e.currentTarget as HTMLElement;
+  const rect = dayEl.getBoundingClientRect();
+  const rawMinutes = ((e.clientY - rect.top) / PX_PER_HOUR) * 60;
+  const snapped = Math.round(rawMinutes / 15) * 15;
+  const startMin = Math.max(0, Math.min(snapped, 1410));
+  const endMin = Math.min(startMin + 60, 1440);
+  const fmt = (m: number) =>
+    `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+  // Pre-fill the form as well (for custom #form slot users)
+  newEvent.value.date = ymd;
+  newEvent.value.start = fmt(startMin);
+  newEvent.value.end = fmt(endMin);
+
+  // Open create popup
+  internalCreateEvent.value = {
+    id: 0, title: '', date: ymd,
+    start: fmt(startMin), end: fmt(endMin),
+    color: '', todos: [], participants: [],
+  };
+  internalCreateVisible.value = true;
+
+  emit('slot-click', { date: ymd, start: fmt(startMin), end: fmt(endMin) });
+};
+
+const onMonthCellClick = (e: MouseEvent, ymd: string) => {
+  if (props.readonly) return;
+  if ((e.target as HTMLElement).closest('.month-chip, .month-daynum, .month-more')) return;
+
+  newEvent.value.date = ymd;
+
+  internalCreateEvent.value = {
+    id: 0, title: '', date: ymd,
+    start: '', end: '',
+    color: '', todos: [], participants: [],
+  };
+  internalCreateVisible.value = true;
+
+  emit('slot-click', { date: ymd });
 };
 
 // ============================================================================
@@ -850,8 +997,17 @@ const showEventInfo = (event: EventInfo) => {
   emit('show-info', event);
 };
 
-const closeEventInfoPopup = () => {
-  emit('close-popup');
+const handlePopupClose = () => {
+  if (internalCreateVisible.value) {
+    internalCreateVisible.value = false;
+  } else {
+    emit('close-popup');
+  }
+};
+
+const handleCreateFromPopup = (event: EventInfo) => {
+  internalCreateVisible.value = false;
+  emit('submit-event', event);
 };
 
 const emitDeleteEvent = (eventId: number) => {
@@ -882,6 +1038,19 @@ const loadEvents = () => {
 
 watchEffect(loadEvents);
 
+watchEffect(() => {
+  let start: string, end: string;
+  if (activeView.value === 'week') {
+    start = weekStartYmd.value;
+    end = addDaysYmd(weekStartYmd.value, 6);
+  } else {
+    const cells = monthCells.value;
+    start = cells[0]?.ymd ?? weekStartYmd.value;
+    end = cells[cells.length - 1]?.ymd ?? weekStartYmd.value;
+  }
+  emit('range-change', { start, end, view: activeView.value });
+});
+
 // ============================================================================
 // Lifecycle
 // ============================================================================
@@ -891,15 +1060,20 @@ onMounted(() => {
     (newEvent.value as any)[field.model] = '';
   });
 
-  const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-  if (mq?.matches) {
-    isDark.value = true;
+  if (typeof window !== 'undefined') {
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (mq?.matches) isDark.value = true;
+
+    currentTimeMinutes.value = minutesOfDayInZone(new Date(), timeZone.value);
+    timeUpdateInterval = setInterval(() => {
+      currentTimeMinutes.value = minutesOfDayInZone(new Date(), timeZone.value);
+    }, 60000);
   }
 });
 
 onBeforeUnmount(() => {
-  // Clean up in case the component unmounts mid-drag.
   removeDragListeners();
+  if (timeUpdateInterval) clearInterval(timeUpdateInterval);
 });
 
 // ============================================================================
@@ -1019,12 +1193,14 @@ defineExpose({
 
   color: var(--body-text-color);
   font-family: var(--font-family);
+  background-color: var(--body-bg-color);
 }
 
 /* ============================================================================
    DARK THEME
 ============================================================================ */
 .calendar-theme.dark {
+  --body-bg-color: #121212;
   --body-text-color: #ffffff;
 
   --form-bg-color: #1c1c1c;
@@ -1052,13 +1228,18 @@ defineExpose({
 
   --month-chip-color: #000000;
 
-  --popup-bg: rgba(18, 18, 18, 0.95);
+  --popup-bg: #1e1e1e;
   --popup-overlay-bg: rgba(0, 0, 0, 0.7);
   --popup-title-color: #ffffff;
-  --popup-label-color: #ffffff;
+  --popup-label-color: #aaaaaa;
+  --popup-input-color: #ffffff;
   --popup-icon-color: #cccccc;
+  --popup-icon-hover-color: #ffffff;
   --popup-inline-btn-bg: #2a2a2a;
   --popup-inline-btn-color: #dddddd;
+  --popup-save-bg: var(--accent-color);
+  --popup-save-color: var(--accent-contrast);
+  --popup-save-hover-bg: #b2e7c0;
 }
 
 /* ============================================================================
@@ -1068,6 +1249,7 @@ defineExpose({
   .calendar-theme:not(.dark):not(.light) {
     --body-bg-color: #121212;
     --body-text-color: #ffffff;
+    /* background-color is already applied via var(--body-bg-color) on .calendar-theme */
 
     --form-bg-color: #1c1c1c;
     --form-border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1219,7 +1401,6 @@ defineExpose({
   align-items: center;
   height: 100%;
   text-align: center;
-  margin-bottom: 13px;
 }
 
 .calendar-theme .days {
@@ -1244,7 +1425,7 @@ defineExpose({
 
 .calendar-theme .event {
   background-color: var(--calendar-primary-color);
-  padding: var(--event-padding);
+  padding: 0;
   font-size: var(--event-font-size);
   border-radius: var(--event-border-radius);
   width: 95%;
@@ -1252,10 +1433,12 @@ defineExpose({
   position: absolute;
   cursor: grab;
   transition: box-shadow 0.15s ease, transform 0.15s ease;
+  overflow: hidden;
+  border-left: 3px solid rgba(0, 0, 0, 0.18);
 }
 
 .calendar-theme .event:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
   transform: translateY(-1px);
 }
 
@@ -1263,9 +1446,46 @@ defineExpose({
   cursor: grabbing;
 }
 
-.calendar-theme .event span {
-  color: var(--event-title-color);
-  font-size: var(--event-title-size);
+.calendar-theme .event-inner {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  height: 100%;
+  overflow: hidden;
+  gap: 1px;
+}
+
+.calendar-theme .event-title {
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.calendar-theme .event-time-label {
+  font-size: 0.7rem;
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  line-height: 1.2;
+}
+
+.calendar-theme .event-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 2px;
+}
+
+.calendar-theme .event-meta-badge {
+  font-size: 0.65rem;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 3px;
+  padding: 0 4px;
+  white-space: nowrap;
+  line-height: 1.5;
 }
 
 .calendar-theme .empty-slot {
@@ -1477,23 +1697,7 @@ defineExpose({
   opacity: 1;
 }
 
-.calendar-theme .info-button {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  background-color: transparent;
-  border: none;
-  color: var(--accent-color);
-  font-weight: bold;
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 4px;
-  transition: background-color 0.15s ease;
-}
-
-.calendar-theme .info-button:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
+/* .info-button removed – clicking anywhere on the event opens the popup */
 
 .calendar-theme .remove-button {
   background-color: var(--danger-bg);
@@ -1508,6 +1712,107 @@ defineExpose({
 
 .calendar-theme .remove-button:hover {
   filter: brightness(0.9);
+}
+
+/* ── Today button ──────────────────────────────────────────────────────────── */
+.calendar-theme .today-btn {
+  background: var(--today-btn-bg, transparent);
+  color: var(--today-btn-color, var(--accent-color));
+  border: 1px solid var(--today-btn-border, var(--accent-color));
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--button-border-radius, 6px);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.15s, color 0.15s;
+  margin-right: 0.5rem;
+}
+
+.calendar-theme .today-btn:hover {
+  background: var(--today-btn-hover-bg, var(--accent-color));
+  color: var(--today-btn-hover-color, var(--accent-contrast));
+}
+
+/* ── Current time indicator ────────────────────────────────────────────────── */
+.calendar-theme .current-time-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--current-time-color, #e53e3e);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.calendar-theme .current-time-dot {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--current-time-color, #e53e3e);
+}
+
+/* ── All-day spacer (hours column, aligns with allday-row) ─────────────────── */
+.calendar-theme .allday-spacer {
+  min-height: 28px;
+  flex-shrink: 0;
+}
+
+/* ── All-day row ───────────────────────────────────────────────────────────── */
+.calendar-theme .allday-row {
+  display: flex;
+  border-bottom: 1px solid var(--grid-border-color);
+  min-height: 28px;
+}
+
+.calendar-theme .allday-day {
+  flex: 1;
+  border-left: 1px solid var(--grid-border-color);
+  padding: 2px 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  min-height: 24px;
+}
+
+.calendar-theme .allday-day:first-child {
+  border-left: none;
+}
+
+.calendar-theme .allday-chip {
+  border: none;
+  border-radius: var(--month-chip-radius, 4px);
+  padding: 1px 6px;
+  font-size: var(--month-chip-size, 0.6875rem);
+  color: var(--month-chip-color, #000);
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  background: var(--calendar-primary-color);
+  transition: opacity 0.15s;
+}
+
+.calendar-theme .allday-chip:hover {
+  opacity: 0.8;
+}
+
+/* ── Full-width form field (title) ─────────────────────────────────────────── */
+.calendar-theme .form-group--full {
+  flex-basis: 100%;
+}
+
+/* ── Mobile: horizontal scroll for week view ───────────────────────────────── */
+.calendar-theme .week-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calendar-theme .hours-and-days {
+  min-width: 560px;
 }
 
 @media (max-width: 768px) {

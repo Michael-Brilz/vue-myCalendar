@@ -36,8 +36,11 @@
         @update:participants="handleUpdatedParticipants"
         @handle-delete="handleDeleteEvent"
         @update-event="handleUpdateEvent"
+        @submit-event="handleSubmitEvent"
         @show-info="handleShowInfo"
         @close-popup="isPopupVisible = false"
+        @slot-click="handleSlotClick"
+        @range-change="handleRangeChange"
     />
   </div>
 </template>
@@ -70,11 +73,12 @@ const schedules = ref<EventInfo[]>([
     date: '2026-08-14',
     start: '09:00',
     end: '20:00',
-    teacher: 'Malika Heaney',
-    room: 'Room 1',
+    organizer: 'Malika Heaney',
+    location: 'Konferenzraum A',
     color: '#e2Be33',
-    todos: ['Prepare', 'Print documents'],
-    participants: ['Malika', 'Jonas']
+    description: 'Quarterly planning session – bring Q3 results.',
+    todos: ['Prepare slides', 'Print documents'],
+    participants: ['Malika', 'Jonas', 'Sara'],
   },
   {
     id: 2,
@@ -82,38 +86,50 @@ const schedules = ref<EventInfo[]>([
     date: '2026-08-14',
     start: '13:00',
     end: '18:00',
-    teacher: 'John Doe',
-    room: 'Room 2',
+    organizer: 'John Doe',
+    location: 'Konferenzraum B',
+    link: 'https://meet.google.com/abc-defg-hij',
     color: '#33C3FF',
-    todos: ['Set up the projector'],
-    participants: ['John', 'Lena']
+    todos: ['Set up the projector', 'Prepare handouts'],
+    participants: ['John', 'Lena'],
   },
   {
     id: 3,
-    title: 'Daily',
+    title: 'Daily Standup',
     date: '2026-08-14',
     start: '08:00',
-    end: '10:00',
-    teacher: 'John Doe',
-    room: 'Online',
+    end: '08:30',
+    organizer: 'John Doe',
+    link: 'https://zoom.us/j/123456789',
     color: '#df3cae',
     todos: [],
-    participants: ['John', 'Lena']
+    participants: ['John', 'Lena', 'Tim', 'Anna'],
+  },
+  {
+    id: 4,
+    title: 'Team Off-site',
+    date: '2026-08-14',
+    start: '00:00',
+    end: '23:59',
+    allDay: true,
+    color: '#7c3aed',
+    description: 'Ganztägiges Teamevent außerhalb des Büros.',
+    participants: ['Alle'],
   },
 ]);
 
-const popupFields = ref(['title', 'date', 'start', 'end']);
+const popupFields = ref<string[]>([]);
 const isPopupVisible = ref(false);
 const selectedEvent = ref<EventInfo | null>(null);
 
 const additionalFields = ref([
-  { id: 'teacher', label: 'Teacher', type: 'text', model: 'teacher' },
+  { id: 'organizer', label: 'Organizer', type: 'text', model: 'organizer' },
   {
-    id: 'room',
-    label: 'Room',
+    id: 'location',
+    label: 'Location',
     type: 'select',
-    model: 'room',
-    options: [{ id: 1, name: 'Room 1' }, { id: 2, name: 'Room 2' }]
+    model: 'location',
+    options: [{ id: 1, name: 'Konferenzraum A' }, { id: 2, name: 'Konferenzraum B' }, { id: 3, name: 'Online' }]
   },
 ]);
 
@@ -126,6 +142,11 @@ const labelsAndSettings = computed(() => ({
 }));
 
 /** Event-Handler */
+const handleSubmitEvent = (event: EventInfo) => {
+  const newId = Math.max(0, ...schedules.value.map(e => e.id)) + 1;
+  schedules.value.push({ ...event, id: newId });
+};
+
 const handleDeleteEvent = (eventId: number) => {
   schedules.value = schedules.value.filter(event => event.id !== eventId);
 };
@@ -148,6 +169,14 @@ const handleUpdatedTodos = ({ todos, eventId }: { todos: string[], eventId: numb
 const handleUpdatedParticipants = ({ participants, eventId }: { participants: string[], eventId: number }) => {
   const event = schedules.value.find(e => e.id === eventId);
   if (event) event.participants = participants;
+};
+
+const handleSlotClick = ({ date, start, end }: { date: string; start?: string; end?: string }) => {
+  console.log('Slot clicked:', date, start, end);
+};
+
+const handleRangeChange = ({ start, end, view }: { start: string; end: string; view: string }) => {
+  console.log('Visible range:', start, '–', end, `(${view})`);
 };
 </script>
 
@@ -177,16 +206,27 @@ const handleUpdatedParticipants = ({ participants, eventId }: { participants: st
 .toggle-btn:active { transform: translateY(1px); }
 .toggle-btn.active { border-color: #111827; }
 
-/* Custom-Variablen fürs Kind */
+/* Custom-Variablen fürs Kind — strukturell (beide Modi) */
 .customize-schedule-form {
   --font-family: 'Inter', system-ui, sans-serif;
+  --event-border-radius: 6px;
+  --form-padding: 20px;
+  --form-border-radius: 10px;
+  --label-font-weight: 500;
+  --input-border-radius: 5px;
+  --input-padding: 10px;
+  --input-font-size: 15px;
+  --button-padding: 12px 20px;
+  --button-border-radius: 8px;
+}
 
+/* Light-Mode-Farben (nur wenn NICHT dark) */
+.customize-schedule-form:not(.dark) {
   --accent-color: #E30613;
   --accent-contrast: #ffffff;
 
   --grid-border-color: #e0e0e0;
   --calendar-primary-color: #f3c6c9;
-  --event-border-radius: 6px;
   --event-title-color: #1a1a1a;
 
   --button-bg-color: #E30613;
@@ -199,37 +239,52 @@ const handleUpdatedParticipants = ({ participants, eventId }: { participants: st
   --month-today-bg: color-mix(in srgb, #E30613 12%, transparent);
   --month-chip-color: #1a1a1a;
 
-  /* deine bestehenden Form-Variablen */
-  --form-padding: 20px;
-  --form-border-radius: 10px;
   --form-border: 1px solid #333;
   --label-color: #445269;
-  --label-font-weight: 500;
   --input-border: 1px solid #445269;
-  --input-border-radius: 5px;
-  --input-padding: 10px;
-  --input-font-size: 15px;
-
-  --button-padding: 12px 20px;
-  --button-border-radius: 8px;
 }
 
+/* Dark-Mode-Overrides */
 .customize-schedule-form.dark {
-  --label-color: #ffffff;
-  --form-border: 1px solid rgba(255,255,255,0.15);
-  --input-border: 1px solid rgba(255,255,255,0.2);
+  --label-color: #e8e8e8;
+  --form-border: 1px solid rgba(255, 255, 255, 0.12);
+  --input-border: 1px solid rgba(255, 255, 255, 0.18);
+  --input-bg-color: #2a2a2a;
+  --form-bg-color: #1e1e1e;
+}
+
+/* Toolbar-Buttons im Dark-Mode */
+:root.dark .toggle-btn {
+  background: #2a2a2a;
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+:root.dark .toggle-btn:hover { background: #3a3a3a; }
+:root.dark .toggle-btn.active {
+  border-color: #D2F7D8;
+  color: #D2F7D8;
 }
 </style>
 
-<!-- Popup renders outside the calendar root (fixed position),
-     so its variables must live on a shared ancestor, not on .customize-schedule-form -->
+<!-- Popup variables live on the calendar-theme root (CSS custom properties cascade
+     through the DOM regardless of position: fixed). These :root rules are a fallback. -->
 <style>
 :root {
   --popup-bg: #ffffff;
   --popup-title-color: #E30613;
-  --popup-label-color: #333333;
+  --popup-label-color: #555555;
   --popup-input-focus-border: #E30613;
   --popup-save-bg: #E30613;
   --popup-save-hover-bg: #b3050f;
+}
+
+:root.dark {
+  --popup-bg: #1e1e1e;
+  --popup-title-color: #ffffff;
+  --popup-label-color: #aaaaaa;
+  --popup-input-focus-border: #D2F7D8;
+  --popup-save-bg: #D2F7D8;
+  --popup-save-hover-bg: #b2e7c0;
+  --popup-save-color: #121212;
 }
 </style>
