@@ -1,49 +1,91 @@
-import { computed as T, ref as F, watch as Xt, defineComponent as Et, resolveComponent as Rt, openBlock as r, createElementBlock as d, createElementVNode as a, createVNode as H, toDisplayString as w, unref as E, Fragment as U, renderList as Y, withDirectives as V, vModelText as G, createCommentVNode as K, createTextVNode as Lt, isRef as Ct, useSlots as qt, watchEffect as Ht, onMounted as Zt, onBeforeUnmount as jt, normalizeStyle as Z, normalizeClass as st, renderSlot as Mt, withModifiers as Gt, vModelSelect as Kt, vModelDynamic as Jt, createBlock as Qt } from "vue";
-function te(i, p) {
-  const h = T(() => i.popupFields || []), s = F({ ...i.eventData }), v = F([...i.eventData?.todos || []]), m = F([...i.eventData?.participants || []]);
-  Xt(() => i.eventData, (g) => {
-    g && (s.value = { ...g }, v.value = [...g.todos || []], m.value = [...g.participants || []]);
+import { computed as y, ref as F, watch as ie, defineComponent as Wt, resolveComponent as re, openBlock as i, createElementBlock as r, withModifiers as rt, createElementVNode as o, normalizeStyle as K, unref as c, withDirectives as V, vModelText as O, toDisplayString as m, createCommentVNode as M, createVNode as R, createTextVNode as Vt, Fragment as I, renderList as N, withKeys as xt, isRef as Ot, useSlots as de, watchEffect as Bt, onMounted as ue, onBeforeUnmount as ce, normalizeClass as ct, renderSlot as Tt, vModelSelect as pe, vModelDynamic as ve, createBlock as me } from "vue";
+function fe(v, _) {
+  const T = y(() => v.popupFields || []), s = F({ ...v.eventData }), p = F([...v.eventData?.todos || []]), L = F([...v.eventData?.participants || []]);
+  ie(() => v.eventData, (w) => {
+    w && (s.value = { ...w }, p.value = [...w.todos || []], L.value = [...w.participants || []]);
   }, { immediate: !0 });
-  const u = (g) => g.replace(/_/g, " ").replace(/\b\w/g, (y) => y.toUpperCase()), c = T(() => h.value.length === 0 ? s.value : Object.fromEntries(
-    Object.entries(s.value).filter(([g]) => h.value.includes(g))
-  )), b = (g, y) => {
-    s.value[g] = y, p("updateEvent", s.value);
-  }, D = F(""), P = () => {
-    const g = D.value.trim();
-    g && (v.value.push(g), D.value = "", p("update:todos", { todos: [...v.value], eventId: s.value.id }));
-  }, f = (g) => {
-    v.value.splice(g, 1), p("update:todos", { todos: [...v.value], eventId: s.value.id });
-  }, x = F("");
+  const D = (w) => w.replace(/_/g, " ").replace(/\b\w/g, (W) => W.toUpperCase()), u = y(() => T.value.length === 0 ? s.value : Object.fromEntries(
+    Object.entries(s.value).filter(([w]) => T.value.includes(w))
+  )), l = (w, W) => {
+    s.value[w] = W, _("updateEvent", s.value);
+  }, U = F(""), B = () => {
+    const w = U.value.trim();
+    w && (p.value.push(w), U.value = "", _("update:todos", { todos: [...p.value], eventId: s.value.id }));
+  }, g = (w) => {
+    p.value.splice(w, 1), _("update:todos", { todos: [...p.value], eventId: s.value.id });
+  }, z = F("");
   return {
     editableEventData: s,
-    popupFields: h,
-    filteredEventData: c,
-    formatKey: u,
-    updateField: b,
+    popupFields: T,
+    filteredEventData: u,
+    formatKey: D,
+    updateField: l,
     // Todos
-    localTodos: v,
-    newTodo: D,
-    addTodo: P,
-    removeTodo: f,
+    localTodos: p,
+    newTodo: U,
+    addTodo: B,
+    removeTodo: g,
     // Participants
-    localParticipants: m,
-    newParticipant: x,
+    localParticipants: L,
+    newParticipant: z,
     addParticipant: () => {
-      const g = x.value.trim();
-      g && (m.value.push(g), x.value = "", p("update:participants", { participants: [...m.value], eventId: s.value.id }));
+      const w = z.value.trim();
+      w && (L.value.push(w), z.value = "", _("update:participants", { participants: [...L.value], eventId: s.value.id }));
     },
-    removeParticipant: (g) => {
-      m.value.splice(g, 1), p("update:participants", { participants: [...m.value], eventId: s.value.id });
+    removeParticipant: (w) => {
+      L.value.splice(w, 1), _("update:participants", { participants: [...L.value], eventId: s.value.id });
     }
   };
 }
-const ee = {
+const he = { class: "popup-header-text" }, ye = {
+  key: 1,
+  class: "popup-title"
+}, be = {
+  key: 2,
+  class: "popup-header-time"
+}, ge = { class: "popup-header-actions" }, we = {
   key: 0,
-  class: "popup"
-}, ne = { class: "top-right-icons" }, oe = { class: "popup-title" }, ae = { key: 0 }, se = {
+  class: "popup-meta"
+}, ke = {
   key: 0,
-  class: "popup-field"
-}, ie = { class: "popup-label" }, le = ["onUpdate:modelValue", "placeholder"], re = { class: "section" }, de = { class: "popup-label" }, ue = { class: "list" }, ce = ["onClick"], pe = { class: "input-row" }, ve = { class: "section" }, me = { class: "popup-label" }, he = { class: "list" }, fe = ["onClick"], ye = { class: "input-row" }, be = /* @__PURE__ */ Et({
+  class: "meta-row meta-row--editable meta-row--datetime"
+}, _e = {
+  key: 1,
+  class: "meta-row"
+}, Te = {
+  key: 0,
+  class: "meta-time"
+}, De = {
+  key: 2,
+  class: "meta-row meta-row--editable"
+}, Se = {
+  key: 3,
+  class: "meta-row"
+}, Ce = ["href"], $e = {
+  key: 4,
+  class: "meta-row meta-row--editable"
+}, Me = {
+  key: 1,
+  class: "popup-description-wrap"
+}, Le = { class: "popup-description" }, Ee = {
+  key: 2,
+  class: "popup-section"
+}, Ue = { class: "popup-label" }, Pe = ["onUpdate:modelValue", "placeholder"], Ae = { class: "popup-section" }, Fe = { class: "section-header" }, Ye = { class: "section-label" }, Ie = {
+  key: 0,
+  class: "chips"
+}, Ne = ["onClick"], Ve = {
+  key: 1,
+  class: "input-row"
+}, xe = ["placeholder"], Oe = { class: "popup-section" }, Be = { class: "section-header" }, ze = { class: "section-label" }, We = {
+  key: 0,
+  class: "todo-list"
+}, Re = { class: "todo-text" }, Xe = ["onClick"], je = {
+  key: 1,
+  class: "input-row"
+}, He = ["placeholder"], qe = {
+  key: 3,
+  class: "popup-footer"
+}, Ke = /* @__PURE__ */ Wt({
   __name: "Popup",
   props: {
     visible: { type: Boolean },
@@ -55,160 +97,333 @@ const ee = {
     todos: {},
     participants: {},
     todoPlaceholder: {},
-    participantPlaceholder: {}
+    participantPlaceholder: {},
+    readonly: { type: Boolean },
+    createMode: { type: Boolean }
   },
   emits: ["submit-event", "handle-delete", "update-event", "show-info", "close-popup", "update:todos", "update:participants"],
-  setup(i, { emit: p }) {
-    const h = i, s = T(() => h.todosLabel || "To-do"), v = T(() => h.participantsLabel || "Participant"), m = p, {
-      editableEventData: u,
-      filteredEventData: c,
-      formatKey: b,
-      localTodos: D,
-      newTodo: P,
-      addTodo: f,
-      localParticipants: x,
-      newParticipant: X,
-      addParticipant: J
-    } = te(h, m), g = () => m("close-popup"), y = () => m("handle-delete", h.eventData.id), Q = () => {
-      const I = {
-        ...u.value,
-        todos: D.value,
-        participants: x.value
+  setup(v, { emit: _ }) {
+    const T = v, s = y(() => T.readonly ?? !1), p = y(() => T.createMode ?? !1), L = y(() => T.todosLabel || "To-Do"), D = y(() => T.participantsLabel || "Teilnehmer"), u = _, {
+      editableEventData: l,
+      filteredEventData: U,
+      formatKey: B,
+      localTodos: g,
+      newTodo: z,
+      addTodo: j,
+      localParticipants: X,
+      newParticipant: w,
+      addParticipant: W
+    } = fe(T, u), mt = /* @__PURE__ */ new Set([
+      "id",
+      "title",
+      "date",
+      "start",
+      "end",
+      "startsAt",
+      "endsAt",
+      "color",
+      "location",
+      "link",
+      "organizer",
+      "description",
+      "info",
+      "todos",
+      "participants",
+      "allDay",
+      "source",
+      "editable",
+      "reminderMinutes",
+      "recurrence"
+    ]), dt = y(
+      () => Object.fromEntries(
+        Object.entries(U.value).filter(
+          ([b]) => b !== "title" && !mt.has(b)
+        )
+      )
+    ), ut = y(() => {
+      const b = l.value;
+      if (b.date) {
+        const [f, $, h] = b.date.split("-").map(Number);
+        return new Intl.DateTimeFormat(void 0, { day: "numeric", month: "long", year: "numeric" }).format(new Date(f, $ - 1, h));
+      }
+      return b.startsAt ? new Intl.DateTimeFormat(void 0, { day: "numeric", month: "long", year: "numeric" }).format(new Date(b.startsAt)) : "";
+    }), k = y(() => {
+      const b = l.value;
+      if (b.start && b.end) return `${b.start} – ${b.end}`;
+      if (b.startsAt && b.endsAt) {
+        const f = new Intl.DateTimeFormat(void 0, { hour: "2-digit", minute: "2-digit" });
+        return `${f.format(new Date(b.startsAt))} – ${f.format(new Date(b.endsAt))}`;
+      }
+      return "";
+    }), nt = () => u("close-popup"), Y = () => u("handle-delete", T.eventData.id), ft = () => {
+      const b = {
+        ...l.value,
+        todos: g.value,
+        participants: X.value
       };
-      m("update-event", I), m("update:todos", { todos: D.value, eventId: h.eventData.id }), m("update:participants", { participants: x.value, eventId: h.eventData.id }), m("close-popup");
-    }, $ = F(null), R = { x: 0, y: 0 }, A = (I) => {
-      if (!$.value) return;
-      const C = $.value;
-      R.x = I.clientX - C.getBoundingClientRect().left, R.y = I.clientY - C.getBoundingClientRect().top;
-      const N = (M) => {
-        C.style.left = `${M.clientX - R.x}px`, C.style.top = `${M.clientY - R.y}px`, C.style.position = "absolute", C.style.transform = "none";
-      }, L = () => {
-        window.removeEventListener("mousemove", N), window.removeEventListener("mouseup", L);
+      p.value ? u("submit-event", b) : (u("update-event", b), u("update:todos", { todos: g.value, eventId: T.eventData.id }), u("update:participants", { participants: X.value, eventId: T.eventData.id })), u("close-popup");
+    }, P = F(null), Q = { x: 0, y: 0 }, ht = (b) => {
+      if (b.target.closest("input, textarea, button, a, select") || !P.value) return;
+      const $ = P.value;
+      Q.x = b.clientX - $.getBoundingClientRect().left, Q.y = b.clientY - $.getBoundingClientRect().top;
+      const h = (Z) => {
+        $.style.left = `${Z.clientX - Q.x}px`, $.style.top = `${Z.clientY - Q.y}px`, $.style.position = "absolute", $.style.transform = "none";
+      }, A = () => {
+        window.removeEventListener("mousemove", h), window.removeEventListener("mouseup", A);
       };
-      window.addEventListener("mousemove", N), window.addEventListener("mouseup", L);
-    }, at = (I) => {
-      D.value.splice(I, 1), m("update:todos", {
-        todos: [...D.value],
-        eventId: u.value.id
-      });
-    }, it = (I) => {
-      x.value.splice(I, 1), m("update:participants", {
-        participants: [...x.value],
-        eventId: u.value.id
-      });
+      window.addEventListener("mousemove", h), window.addEventListener("mouseup", A);
+    }, yt = (b) => {
+      g.value.splice(b, 1), u("update:todos", { todos: [...g.value], eventId: l.value.id });
+    }, ot = (b) => {
+      X.value.splice(b, 1), u("update:participants", { participants: [...X.value], eventId: l.value.id });
     };
-    return (I, C) => {
-      const N = Rt("font-awesome-icon");
-      return i.visible ? (r(), d("div", ee, [
-        a("div", {
+    return (b, f) => {
+      const $ = re("font-awesome-icon");
+      return v.visible ? (i(), r("div", {
+        key: 0,
+        class: "popup",
+        onClick: rt(nt, ["self"])
+      }, [
+        o("div", {
           class: "popup-content",
           ref_key: "popupRef",
-          ref: $,
-          onMousedown: A
+          ref: P,
+          onMousedown: ht
         }, [
-          a("div", ne, [
-            a("button", {
-              class: "icon-button",
-              onClick: y,
-              title: "Delete"
-            }, [
-              H(N, { icon: ["fas", "trash"] })
+          o("div", {
+            class: "popup-header",
+            style: K({ borderLeftColor: c(l).color || "var(--accent-color)" })
+          }, [
+            o("div", he, [
+              p.value ? V((i(), r("input", {
+                key: 0,
+                "onUpdate:modelValue": f[0] || (f[0] = (h) => c(l).title = h),
+                class: "popup-title-input",
+                placeholder: "Titel…",
+                autofocus: ""
+              }, null, 512)), [
+                [O, c(l).title]
+              ]) : (i(), r("h2", ye, m(c(l).title), 1)),
+              k.value && !p.value ? (i(), r("span", be, m(k.value), 1)) : M("", !0)
             ]),
-            a("button", {
-              class: "icon-button",
-              onClick: g,
-              title: "Close"
-            }, [
-              H(N, { icon: ["fas", "times"] })
-            ])
-          ]),
-          a("h2", oe, w(E(u).title), 1),
-          i.eventData && Object.keys(i.eventData).length ? (r(), d("div", ae, [
-            (r(!0), d(U, null, Y(E(c), (L, M) => (r(), d(U, { key: M }, [
-              M !== "title" ? (r(), d("div", se, [
-                a("label", ie, w(E(b)(String(M))), 1),
-                V(a("input", {
-                  "onUpdate:modelValue": (tt) => E(u)[M] = tt,
-                  class: "popup-input",
-                  placeholder: E(b)(String(M))
-                }, null, 8, le), [
-                  [G, E(u)[M]]
-                ])
-              ])) : K("", !0)
-            ], 64))), 128))
-          ])) : K("", !0),
-          a("div", re, [
-            a("label", de, w(s.value), 1),
-            a("ul", ue, [
-              (r(!0), d(U, null, Y(E(D), (L, M) => (r(), d("li", { key: M }, [
-                Lt(w(L) + " ", 1),
-                a("button", {
-                  onClick: (tt) => at(M)
-                }, [
-                  H(N, { icon: ["fas", "trash"] })
-                ], 8, ce)
-              ]))), 128))
-            ]),
-            a("div", pe, [
-              V(a("input", {
-                "onUpdate:modelValue": C[0] || (C[0] = (L) => Ct(P) ? P.value = L : null),
-                placeholder: "New To-do...",
-                class: "popup-input"
-              }, null, 512), [
-                [G, E(P)]
-              ]),
-              a("button", {
-                class: "add-inline-button",
-                onClick: C[1] || (C[1] = //@ts-ignore
-                (...L) => E(f) && E(f)(...L))
+            o("div", ge, [
+              !s.value && !p.value ? (i(), r("button", {
+                key: 0,
+                class: "icon-button danger",
+                onClick: Y,
+                title: "Löschen"
               }, [
-                H(N, { icon: ["fas", "plus"] })
+                R($, { icon: ["fas", "trash"] })
+              ])) : M("", !0),
+              o("button", {
+                class: "icon-button",
+                onClick: nt,
+                title: "Schließen"
+              }, [
+                R($, { icon: ["fas", "times"] })
               ])
             ])
-          ]),
-          a("div", ve, [
-            a("label", me, w(v.value), 1),
-            a("ul", he, [
-              (r(!0), d(U, null, Y(E(x), (L, M) => (r(), d("li", { key: M }, [
-                Lt(w(L) + " ", 1),
-                a("button", {
-                  onClick: (tt) => it(M)
-                }, [
-                  H(N, { icon: ["fas", "trash"] })
-                ], 8, fe)
-              ]))), 128))
-            ]),
-            a("div", ye, [
-              V(a("input", {
-                "onUpdate:modelValue": C[2] || (C[2] = (L) => Ct(X) ? X.value = L : null),
-                placeholder: "Add Participant ...",
-                class: "popup-input"
+          ], 4),
+          c(l).date || c(l).startsAt || c(l).location || c(l).link || c(l).organizer ? (i(), r("div", we, [
+            c(l).date != null ? (i(), r("div", ke, [
+              R($, {
+                icon: ["fas", "calendar-days"],
+                class: "meta-icon"
+              }),
+              V(o("input", {
+                "onUpdate:modelValue": f[1] || (f[1] = (h) => c(l).date = h),
+                type: "date",
+                class: "meta-input meta-input--date"
               }, null, 512), [
-                [G, E(X)]
+                [O, c(l).date]
               ]),
-              a("button", {
-                class: "add-inline-button",
-                onClick: C[3] || (C[3] = //@ts-ignore
-                (...L) => E(J) && E(J)(...L))
-              }, [
-                H(N, { icon: ["fas", "user-plus"] })
+              V(o("input", {
+                "onUpdate:modelValue": f[2] || (f[2] = (h) => c(l).start = h),
+                type: "time",
+                class: "meta-input meta-input--time"
+              }, null, 512), [
+                [O, c(l).start]
+              ]),
+              f[12] || (f[12] = o("span", { class: "meta-time-sep" }, "–", -1)),
+              V(o("input", {
+                "onUpdate:modelValue": f[3] || (f[3] = (h) => c(l).end = h),
+                type: "time",
+                class: "meta-input meta-input--time"
+              }, null, 512), [
+                [O, c(l).end]
               ])
-            ])
+            ])) : c(l).startsAt ? (i(), r("div", _e, [
+              R($, {
+                icon: ["fas", "calendar-days"],
+                class: "meta-icon"
+              }),
+              o("span", null, [
+                Vt(m(ut.value), 1),
+                k.value ? (i(), r("span", Te, ", " + m(k.value), 1)) : M("", !0)
+              ])
+            ])) : M("", !0),
+            c(l).location ? (i(), r("div", De, [
+              R($, {
+                icon: ["fas", "location-dot"],
+                class: "meta-icon"
+              }),
+              V(o("input", {
+                "onUpdate:modelValue": f[4] || (f[4] = (h) => c(l).location = h),
+                class: "meta-input",
+                placeholder: "Location"
+              }, null, 512), [
+                [O, c(l).location]
+              ])
+            ])) : M("", !0),
+            c(l).link ? (i(), r("div", Se, [
+              R($, {
+                icon: ["fas", "link"],
+                class: "meta-icon"
+              }),
+              o("a", {
+                href: c(l).link,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                class: "popup-link"
+              }, m(c(l).link), 9, Ce)
+            ])) : M("", !0),
+            c(l).organizer ? (i(), r("div", $e, [
+              R($, {
+                icon: ["fas", "user"],
+                class: "meta-icon"
+              }),
+              V(o("input", {
+                "onUpdate:modelValue": f[5] || (f[5] = (h) => c(l).organizer = h),
+                class: "meta-input",
+                placeholder: "Organizer"
+              }, null, 512), [
+                [O, c(l).organizer]
+              ])
+            ])) : M("", !0)
+          ])) : M("", !0),
+          c(l).description || c(l).info ? (i(), r("div", Me, [
+            o("p", Le, m(c(l).description || c(l).info), 1)
+          ])) : M("", !0),
+          Object.keys(dt.value).length ? (i(), r("div", Ee, [
+            (i(!0), r(I, null, N(dt.value, (h, A) => (i(), r("div", {
+              key: A,
+              class: "popup-field"
+            }, [
+              o("label", Ue, m(c(B)(String(A))), 1),
+              V(o("input", {
+                "onUpdate:modelValue": (Z) => c(l)[A] = Z,
+                class: "popup-input",
+                placeholder: c(B)(String(A))
+              }, null, 8, Pe), [
+                [O, c(l)[A]]
+              ])
+            ]))), 128))
+          ])) : M("", !0),
+          o("div", Ae, [
+            o("div", Fe, [
+              R($, {
+                icon: ["fas", "users"],
+                class: "section-icon"
+              }),
+              o("span", Ye, m(D.value), 1)
+            ]),
+            c(X).length ? (i(), r("div", Ie, [
+              (i(!0), r(I, null, N(c(X), (h, A) => (i(), r("span", {
+                key: A,
+                class: "chip"
+              }, [
+                Vt(m(h) + " ", 1),
+                o("button", {
+                  class: "chip-remove",
+                  onClick: (Z) => ot(A),
+                  title: "Entfernen"
+                }, "×", 8, Ne)
+              ]))), 128))
+            ])) : M("", !0),
+            s.value ? M("", !0) : (i(), r("div", Ve, [
+              V(o("input", {
+                "onUpdate:modelValue": f[6] || (f[6] = (h) => Ot(w) ? w.value = h : null),
+                placeholder: v.participantPlaceholder || "Teilnehmer hinzufügen…",
+                class: "popup-input",
+                onKeyup: f[7] || (f[7] = xt(
+                  //@ts-ignore
+                  (...h) => c(W) && c(W)(...h),
+                  ["enter"]
+                ))
+              }, null, 40, xe), [
+                [O, c(w)]
+              ]),
+              o("button", {
+                class: "add-inline-button",
+                onClick: f[8] || (f[8] = //@ts-ignore
+                (...h) => c(W) && c(W)(...h)),
+                title: "Hinzufügen"
+              }, [
+                R($, { icon: ["fas", "user-plus"] })
+              ])
+            ]))
           ]),
-          a("div", { class: "popup-footer" }, [
-            a("button", {
+          o("div", Oe, [
+            o("div", Be, [
+              R($, {
+                icon: ["fas", "list-check"],
+                class: "section-icon"
+              }),
+              o("span", ze, m(L.value), 1)
+            ]),
+            c(g).length ? (i(), r("ul", We, [
+              (i(!0), r(I, null, N(c(g), (h, A) => (i(), r("li", {
+                key: A,
+                class: "todo-item"
+              }, [
+                f[13] || (f[13] = o("span", { class: "todo-bullet" }, null, -1)),
+                o("span", Re, m(h), 1),
+                o("button", {
+                  class: "todo-remove",
+                  onClick: (Z) => yt(A),
+                  title: "Entfernen"
+                }, [
+                  R($, { icon: ["fas", "trash"] })
+                ], 8, Xe)
+              ]))), 128))
+            ])) : M("", !0),
+            s.value ? M("", !0) : (i(), r("div", je, [
+              V(o("input", {
+                "onUpdate:modelValue": f[9] || (f[9] = (h) => Ot(z) ? z.value = h : null),
+                placeholder: v.todoPlaceholder || "Neue Aufgabe…",
+                class: "popup-input",
+                onKeyup: f[10] || (f[10] = xt(
+                  //@ts-ignore
+                  (...h) => c(j) && c(j)(...h),
+                  ["enter"]
+                ))
+              }, null, 40, He), [
+                [O, c(z)]
+              ]),
+              o("button", {
+                class: "add-inline-button",
+                onClick: f[11] || (f[11] = //@ts-ignore
+                (...h) => c(j) && c(j)(...h)),
+                title: "Hinzufügen"
+              }, [
+                R($, { icon: ["fas", "plus"] })
+              ])
+            ]))
+          ]),
+          !s.value || p.value ? (i(), r("div", qe, [
+            o("button", {
               class: "save-button",
-              onClick: Q
-            }, "Speichern")
-          ])
+              onClick: ft
+            }, m(p.value ? "Erstellen" : "Speichern"), 1)
+          ])) : M("", !0)
         ], 544)
-      ])) : K("", !0);
+      ])) : M("", !0);
     };
   }
-}), we = "data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2050%2050'%20width='50px'%20height='50px'%3e%3cpath%20d='M%2025%202%20C%2012.309295%202%202%2012.309295%202%2025%20C%202%2037.690705%2012.309295%2048%2025%2048%20C%2037.690705%2048%2048%2037.690705%2048%2025%20C%2048%2012.309295%2037.690705%202%2025%202%20z%20M%2025%204%20C%2036.609824%204%2046%2013.390176%2046%2025%20C%2046%2036.609824%2036.609824%2046%2025%2046%20C%2013.390176%2046%204%2036.609824%204%2025%20C%204%2013.390176%2013.390176%204%2025%204%20z%20M%2025%2011%20A%203%203%200%200%200%2022%2014%20A%203%203%200%200%200%2025%2017%20A%203%203%200%200%200%2028%2014%20A%203%203%200%200%200%2025%2011%20z%20M%2021%2021%20L%2021%2023%20L%2022%2023%20L%2023%2023%20L%2023%2036%20L%2022%2036%20L%2021%2036%20L%2021%2038%20L%2022%2038%20L%2023%2038%20L%2027%2038%20L%2028%2038%20L%2029%2038%20L%2029%2036%20L%2028%2036%20L%2027%2036%20L%2027%2021%20L%2026%2021%20L%2022%2021%20L%2021%2021%20z'/%3e%3c/svg%3e";
-function W(i, p) {
-  const h = new Intl.DateTimeFormat("en-US", {
-    timeZone: p,
+});
+function et(v, _) {
+  const T = new Intl.DateTimeFormat("en-US", {
+    timeZone: _,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -216,31 +431,31 @@ function W(i, p) {
     minute: "2-digit",
     hour12: !1
   }), s = {};
-  for (const D of h.formatToParts(i))
-    D.type !== "literal" && (s[D.type] = D.value);
-  const v = Number(s.year), m = Number(s.month), u = Number(s.day), c = Number(s.hour) % 24, b = Number(s.minute);
+  for (const U of T.formatToParts(v))
+    U.type !== "literal" && (s[U.type] = U.value);
+  const p = Number(s.year), L = Number(s.month), D = Number(s.day), u = Number(s.hour) % 24, l = Number(s.minute);
   return {
-    year: v,
-    month: m,
-    day: u,
-    hour: c,
-    minute: b,
+    year: p,
+    month: L,
+    day: D,
+    hour: u,
+    minute: l,
     ymd: `${s.year}-${s.month}-${s.day}`,
-    minutesOfDay: c * 60 + b
+    minutesOfDay: u * 60 + l
   };
 }
-function ct(i, p) {
-  return W(i, p).ymd;
+function pt(v, _) {
+  return et(v, _).ymd;
 }
-function z(i, p) {
-  return W(i, p).minutesOfDay;
+function q(v, _) {
+  return et(v, _).minutesOfDay;
 }
-function pt(i, p) {
-  const h = W(i, p);
-  return `${String(h.hour).padStart(2, "0")}:${String(h.minute).padStart(2, "0")}`;
+function lt(v, _) {
+  const T = et(v, _);
+  return `${String(T.hour).padStart(2, "0")}:${String(T.minute).padStart(2, "0")}`;
 }
-function $t(i, p) {
-  const h = new Intl.DateTimeFormat("en-US", {
+function zt(v, _) {
+  const T = new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
     year: "numeric",
     month: "2-digit",
@@ -250,7 +465,7 @@ function $t(i, p) {
     second: "2-digit",
     hour12: !1
   }), s = new Intl.DateTimeFormat("en-US", {
-    timeZone: p,
+    timeZone: _,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -258,42 +473,42 @@ function $t(i, p) {
     minute: "2-digit",
     second: "2-digit",
     hour12: !1
-  }), v = (m) => {
-    const u = {};
-    for (const c of m.formatToParts(i))
-      c.type !== "literal" && (u[c.type] = Number(c.value));
+  }), p = (L) => {
+    const D = {};
+    for (const u of L.formatToParts(v))
+      u.type !== "literal" && (D[u.type] = Number(u.value));
     return Date.UTC(
-      u.year,
-      u.month - 1,
-      u.day,
-      u.hour % 24,
-      u.minute,
-      u.second
+      D.year,
+      D.month - 1,
+      D.day,
+      D.hour % 24,
+      D.minute,
+      D.second
     );
   };
-  return Math.round((v(s) - v(h)) / 6e4);
+  return Math.round((p(s) - p(T)) / 6e4);
 }
-function ot(i, p, h, s, v, m) {
-  const u = Date.UTC(
-    i,
-    p - 1,
-    h,
-    s,
+function it(v, _, T, s, p, L) {
+  const D = Date.UTC(
     v,
+    _ - 1,
+    T,
+    s,
+    p,
     0
-  ), c = new Date(u), b = $t(c, m), D = u - b * 6e4, P = new Date(D), f = $t(P, m);
-  return f !== b ? new Date(
-    u - f * 6e4
-  ) : P;
+  ), u = new Date(D), l = zt(u, L), U = D - l * 6e4, B = new Date(U), g = zt(B, L);
+  return g !== l ? new Date(
+    D - g * 6e4
+  ) : B;
 }
-function ge(i, p, h = 1) {
-  const s = W(
-    i,
-    p
-  ), v = new Intl.DateTimeFormat("en-US", {
-    timeZone: p,
+function Ze(v, _, T = 1) {
+  const s = et(
+    v,
+    _
+  ), p = new Intl.DateTimeFormat("en-US", {
+    timeZone: _,
     weekday: "short"
-  }).format(i), u = ([
+  }).format(v), D = ([
     "Sun",
     "Mon",
     "Tue",
@@ -301,91 +516,109 @@ function ge(i, p, h = 1) {
     "Thu",
     "Fri",
     "Sat"
-  ].indexOf(v) - h + 7) % 7, c = Date.UTC(
+  ].indexOf(p) - T + 7) % 7, u = Date.UTC(
     s.year,
     s.month - 1,
     s.day,
     12,
     0,
     0
-  ), b = new Date(
-    c - u * 864e5
-  ), D = b.getUTCFullYear(), P = String(
-    b.getUTCMonth() + 1
-  ).padStart(2, "0"), f = String(
-    b.getUTCDate()
+  ), l = new Date(
+    u - D * 864e5
+  ), U = l.getUTCFullYear(), B = String(
+    l.getUTCMonth() + 1
+  ).padStart(2, "0"), g = String(
+    l.getUTCDate()
   ).padStart(2, "0");
-  return `${D}-${P}-${f}`;
+  return `${U}-${B}-${g}`;
 }
-function mt(i, p) {
-  const [h, s, v] = i.split("-").map(Number), m = Date.UTC(
-    h,
+function vt(v, _) {
+  const [T, s, p] = v.split("-").map(Number), L = Date.UTC(
+    T,
     s - 1,
-    v,
+    p,
     12,
     0,
     0
-  ), u = new Date(
-    m + p * 864e5
-  ), c = u.getUTCFullYear(), b = String(
-    u.getUTCMonth() + 1
-  ).padStart(2, "0"), D = String(
-    u.getUTCDate()
+  ), D = new Date(
+    L + _ * 864e5
+  ), u = D.getUTCFullYear(), l = String(
+    D.getUTCMonth() + 1
+  ).padStart(2, "0"), U = String(
+    D.getUTCDate()
   ).padStart(2, "0");
-  return `${c}-${b}-${D}`;
+  return `${u}-${l}-${U}`;
 }
-function ke(i) {
-  const [p, h, s] = i.split("-").map(Number);
+function Ge(v) {
+  const [_, T, s] = v.split("-").map(Number);
   return new Date(
     Date.UTC(
-      p,
-      h - 1,
+      _,
+      T - 1,
       s,
       12
     )
   ).getUTCDay();
 }
-function _e(i, p) {
+function Je(v, _) {
   return new Date(
     Date.UTC(
-      i,
-      p,
+      v,
+      _,
       0
     )
   ).getUTCDate();
 }
-function Te(i, p, h) {
-  const s = `${i}-${String(p).padStart(2, "0")}-01`, v = (ke(s) - h + 7) % 7, m = mt(
+function Qe(v, _, T) {
+  const s = `${v}-${String(_).padStart(2, "0")}-01`, p = (Ge(s) - T + 7) % 7, L = vt(
     s,
-    -v
+    -p
   );
   return Array.from(
     { length: 42 },
-    (u, c) => mt(
-      m,
-      c
+    (D, u) => vt(
+      L,
+      u
     )
   );
 }
-const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["value"], Me = { key: 1 }, $e = ["id", "onUpdate:modelValue", "type"], Ee = { class: "form-group" }, Ue = {
+const tn = { class: "form-group form-group--full" }, en = {
+  for: "title",
+  class: "form-label"
+}, nn = ["placeholder"], an = ["for"], on = { key: 0 }, sn = ["id", "onUpdate:modelValue"], ln = ["value"], rn = { key: 1 }, dn = ["id", "onUpdate:modelValue", "type"], un = { class: "form-group" }, cn = {
   for: "start",
   class: "form-label"
-}, Pe = { class: "form-group" }, xe = {
+}, pn = { class: "form-group" }, vn = {
   for: "end",
   class: "form-label"
-}, Ie = { class: "form-group" }, Ye = {
+}, mn = { class: "form-group" }, fn = {
   for: "date",
   class: "form-label"
-}, Fe = {
+}, hn = {
   type: "submit",
   class: "submit-button"
-}, Ae = { class: "calendar" }, Ne = { class: "navigation" }, Oe = { class: "current-week" }, Ve = { class: "view-toggle" }, Be = {
+}, yn = { class: "calendar" }, bn = { class: "navigation" }, gn = { class: "current-week" }, wn = { class: "view-toggle" }, kn = {
   key: 0,
-  class: "hours-and-days"
-}, ze = { class: "hours" }, We = { class: "weekdays-container" }, Xe = { class: "weekdays" }, Re = { class: "days" }, qe = ["data-ymd"], He = ["onPointerdown"], Ze = ["onClick"], je = ["src"], Ge = {
+  class: "week-scroll-wrapper"
+}, _n = { class: "hours-and-days" }, Tn = { class: "hours" }, Dn = {
+  key: 0,
+  class: "allday-spacer"
+}, Sn = { class: "weekdays-container" }, Cn = { class: "weekdays" }, $n = {
+  key: 0,
+  class: "allday-row"
+}, Mn = ["onClick"], Ln = { class: "days" }, En = ["data-ymd", "onClick"], Un = ["onPointerdown", "onClick"], Pn = { class: "event-inner" }, An = { class: "event-time-label" }, Fn = { class: "event-meta-row" }, Yn = {
+  key: 0,
+  class: "event-meta-badge"
+}, In = {
+  key: 1,
+  class: "event-meta-badge event-meta-badge--link"
+}, Nn = {
+  key: 2,
+  class: "event-meta-badge"
+}, Vn = {
   key: 1,
   class: "month-view"
-}, Ke = { class: "month-weekdays" }, Je = { class: "month-grid" }, Qe = ["data-ymd"], tn = ["onClick"], en = { class: "month-events" }, nn = ["onPointerdown", "onClick"], on = { class: "month-chip-time" }, an = { class: "month-chip-title" }, sn = ["onClick"], vt = 3, ln = 4, j = 40, un = /* @__PURE__ */ Et({
+}, xn = { class: "month-weekdays" }, On = { class: "month-grid" }, Bn = ["data-ymd", "onClick"], zn = ["onClick"], Wn = { class: "month-events" }, Rn = ["onPointerdown", "onClick"], Xn = { class: "month-chip-time" }, jn = { class: "month-chip-title" }, Hn = ["onClick"], Dt = 3, qn = 4, J = 40, Gn = /* @__PURE__ */ Wt({
   __name: "ScheduleForm",
   props: {
     schedules: {},
@@ -408,32 +641,44 @@ const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["
     popupEvent: { default: null },
     timeZone: { default: () => Intl.DateTimeFormat().resolvedOptions().timeZone },
     weekStartsOn: { default: 1 },
-    view: { default: void 0 }
+    view: { default: void 0 },
+    readonly: { type: Boolean, default: !1 }
   },
-  emits: ["submit-event", "handle-delete", "update-event", "show-info", "close-popup", "update:todos", "update:participants", "update:view"],
-  setup(i, { expose: p, emit: h }) {
-    const s = i, v = h;
-    qt();
-    const m = F(!1), u = F({}), c = F({
+  emits: ["submit-event", "handle-delete", "update-event", "show-info", "close-popup", "update:todos", "update:participants", "update:view", "slot-click", "range-change"],
+  setup(v, { expose: _, emit: T }) {
+    const s = v, p = T;
+    de();
+    const L = F(!1), D = F({}), u = F({
       start: "",
       end: "",
       date: "",
       color: "",
       title: "",
       description: ""
-    }), b = F(/* @__PURE__ */ new Date()), D = F("week"), P = F(
+    }), l = F(/* @__PURE__ */ new Date()), U = F("week"), B = F(
       Array.from({ length: 24 }, (t, e) => e.toString().padStart(2, "0") + ":00")
-    ), f = F(null);
-    let x = !1;
-    const X = T(() => s.eventTitleColor), J = T(() => s.eventTitleSize), g = T(() => s.additionalFields), y = T(() => s.timeZone), Q = T(() => s.weekStartsOn), $ = T({
-      get: () => s.view ?? D.value,
+    ), g = F(null);
+    let z = !1;
+    const j = F(-1);
+    let X = null;
+    const w = F(!1), W = F({
+      id: 0,
+      title: "",
+      date: "",
+      start: "",
+      end: "",
+      color: "",
+      todos: [],
+      participants: []
+    }), mt = y(() => s.eventTitleColor), dt = y(() => s.eventTitleSize), ut = y(() => s.additionalFields), k = y(() => s.timeZone), nt = y(() => s.weekStartsOn), Y = y({
+      get: () => s.view ?? U.value,
       set: (t) => {
-        D.value = t, v("update:view", t);
+        U.value = t, p("update:view", t);
       }
-    }), R = T(() => {
+    }), ft = y(() => {
       const t = s.weekdays;
-      return Q.value === 1 ? t : [t[6], ...t.slice(0, 6)];
-    }), A = T(() => ({
+      return nt.value === 1 ? t : [t[6], ...t.slice(0, 6)];
+    }), P = y(() => ({
       startTimeLabel: s.labelsAndSettings?.startTimeLabel || "Start Time",
       endTimeLabel: s.labelsAndSettings?.endTimeLabel || "End Time",
       dateLabel: s.labelsAndSettings?.dateLabel || "Date",
@@ -442,37 +687,43 @@ const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["
       todosLabel: s.labelsAndSettings?.todosLabel,
       participantsLabel: s.labelsAndSettings?.participantsLabel,
       weekViewLabel: s.labelsAndSettings?.weekViewLabel || "Week",
-      monthViewLabel: s.labelsAndSettings?.monthViewLabel || "Month"
-    })), at = T(() => s.placeholderSettings || {}), it = T(() => s.popupVisible), I = T(() => s.popupEvent), C = T(
-      () => ge(b.value, y.value, Q.value)
-    ), N = T(() => $.value === "month" ? new Intl.DateTimeFormat(void 0, {
+      monthViewLabel: s.labelsAndSettings?.monthViewLabel || "Month",
+      titleLabel: s.labelsAndSettings?.titleLabel || "Title",
+      todayButtonLabel: s.labelsAndSettings?.todayButtonLabel || "Today"
+    })), Q = y(() => s.placeholderSettings || {});
+    y(() => s.popupVisible), y(() => s.popupEvent);
+    const ht = y(() => w.value), yt = y(() => s.popupVisible || w.value), ot = y(
+      () => w.value ? W.value : s.popupEvent ?? { id: 0, title: "" }
+    ), b = y(
+      () => Ze(l.value, k.value, nt.value)
+    ), f = y(() => Y.value === "month" ? new Intl.DateTimeFormat(void 0, {
       month: "long",
       year: "numeric",
-      timeZone: y.value
-    }).format(b.value) : `${A.value.calendarWeekLabel} ${It()}`), L = T(() => {
-      const t = W(b.value, y.value), e = Te(t.year, t.month, Q.value), n = ct(/* @__PURE__ */ new Date(), y.value);
-      return e.map((o) => {
-        const [, l, S] = o.split("-").map(Number);
+      timeZone: k.value
+    }).format(l.value) : `${P.value.calendarWeekLabel} ${Ht()}`), $ = y(() => {
+      const t = et(l.value, k.value), e = Qe(t.year, t.month, nt.value), n = pt(/* @__PURE__ */ new Date(), k.value);
+      return e.map((a) => {
+        const [, d, E] = a.split("-").map(Number);
         return {
-          ymd: o,
-          day: S,
-          inMonth: l === t.month,
-          isToday: o === n,
-          events: u.value[o] ?? []
+          ymd: a,
+          day: E,
+          inMonth: d === t.month,
+          isToday: a === n,
+          events: D.value[a] ?? []
         };
       });
-    }), M = T(
-      () => L.value.slice(0, 7).map((t) => {
-        const [e, n, o] = t.ymd.split("-").map(Number);
+    }), h = y(
+      () => $.value.slice(0, 7).map((t) => {
+        const [e, n, a] = t.ymd.split("-").map(Number);
         return new Intl.DateTimeFormat(void 0, {
           weekday: "short",
           timeZone: "UTC"
-        }).format(new Date(Date.UTC(e, n - 1, o, 12)));
+        }).format(new Date(Date.UTC(e, n - 1, a, 12)));
       })
-    ), tt = T(() => !!f.value?.active), Ut = T(() => {
-      const t = f.value;
+    ), A = y(() => !!g.value?.active), Z = y(() => {
+      const t = g.value;
       if (!t || !t.active || t.mode !== "week") return {};
-      const e = t.previewStartMin * j / 60, n = Math.max(t.durationMin, 15) * j / 60;
+      const e = t.previewStartMin * J / 60, n = Math.max(t.durationMin, 15) * J / 60;
       return {
         position: "absolute",
         top: `${e}px`,
@@ -485,76 +736,92 @@ const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["
         background: t.event.color || "var(--calendar-primary-color)",
         zIndex: 5
       };
-    }), ht = T(() => {
-      const t = f.value;
+    }), St = y(() => {
+      const t = g.value;
       if (!t || !t.active) return "";
       if (t.mode === "week") {
-        const l = t.previewStartMin + t.durationMin;
-        return `${ft(t.previewStartMin)} – ${ft(l)}`;
+        const d = t.previewStartMin + t.durationMin;
+        return `${Ct(t.previewStartMin)} – ${Ct(d)}`;
       }
-      const [e, n, o] = t.previewYmd.split("-").map(Number);
+      const [e, n, a] = t.previewYmd.split("-").map(Number);
       return new Intl.DateTimeFormat(void 0, {
         weekday: "short",
         day: "2-digit",
         month: "2-digit",
         timeZone: "UTC"
-      }).format(new Date(Date.UTC(e, n - 1, o, 12)));
+      }).format(new Date(Date.UTC(e, n - 1, a, 12)));
     });
-    function q(t) {
+    function tt(t) {
       if (t.startsAt && t.endsAt) {
         const e = new Date(t.startsAt), n = new Date(t.endsAt);
         if (!isNaN(e.getTime()) && !isNaN(n.getTime()))
           return { start: e, end: n };
       }
       if (t.date && t.start && t.end) {
-        const [e, n, o] = t.date.split("-").map(Number), [l, S] = t.start.split(":").map(Number), [_, k] = t.end.split(":").map(Number);
+        const [e, n, a] = t.date.split("-").map(Number), [d, E] = t.start.split(":").map(Number), [S, C] = t.end.split(":").map(Number);
         return {
-          start: ot(e, n, o, l, S, y.value),
-          end: ot(e, n, o, _, k, y.value)
+          start: it(e, n, a, d, E, k.value),
+          end: it(e, n, a, S, C, k.value)
         };
       }
       return null;
     }
-    function ft(t) {
-      const e = Math.max(0, Math.min(t, 1439)), n = String(Math.floor(e / 60)).padStart(2, "0"), o = String(e % 60).padStart(2, "0");
-      return `${n}:${o}`;
+    function Ct(t) {
+      const e = Math.max(0, Math.min(t, 1439)), n = String(Math.floor(e / 60)).padStart(2, "0"), a = String(e % 60).padStart(2, "0");
+      return `${n}:${a}`;
     }
-    function Pt(t) {
-      const e = t.map((_) => {
-        const k = q(_);
-        return k ? {
-          id: _.id,
-          start: z(k.start, y.value),
-          end: z(k.end, y.value)
+    function Rt(t) {
+      const e = t.map((S) => {
+        const C = tt(S);
+        return C ? {
+          id: S.id,
+          start: q(C.start, k.value),
+          end: q(C.end, k.value)
         } : null;
-      }).filter((_) => _ !== null).sort((_, k) => _.start - k.start || _.end - k.end), n = {};
-      let o = [], l = -1 / 0;
-      const S = (_) => {
-        const k = [], B = {};
-        for (const O of _) {
-          let St = !1;
-          for (let nt = 0; nt < k.length; nt++)
-            if (k[nt] <= O.start) {
-              k[nt] = O.end, B[O.id] = nt, St = !0;
+      }).filter((S) => S !== null).sort((S, C) => S.start - C.start || S.end - C.end), n = {};
+      let a = [], d = -1 / 0;
+      const E = (S) => {
+        const C = [], x = {};
+        for (const G of S) {
+          let Nt = !1;
+          for (let st = 0; st < C.length; st++)
+            if (C[st] <= G.start) {
+              C[st] = G.end, x[G.id] = st, Nt = !0;
               break;
             }
-          St || (k.push(O.end), B[O.id] = k.length - 1);
+          Nt || (C.push(G.end), x[G.id] = C.length - 1);
         }
-        const ut = k.length;
-        for (const O of _)
-          n[O.id] = { col: B[O.id], cols: ut };
+        const at = C.length;
+        for (const G of S)
+          n[G.id] = { col: x[G.id], cols: at };
       };
-      for (const _ of e)
-        o.length && _.start >= l && (S(o), o = [], l = -1 / 0), o.push(_), l = Math.max(l, _.end);
-      return o.length && S(o), n;
+      for (const S of e)
+        a.length && S.start >= d && (E(a), a = [], d = -1 / 0), a.push(S), d = Math.max(d, S.end);
+      return a.length && E(a), n;
     }
-    const xt = T(() => {
+    const Xt = y(() => pt(/* @__PURE__ */ new Date(), k.value)), bt = y(() => {
       const t = {};
-      for (const e of Object.keys(u.value))
-        Object.assign(t, Pt(u.value[e]));
+      for (const [e, n] of Object.entries(D.value)) {
+        const a = n.filter((d) => !d.allDay);
+        a.length && (t[e] = a);
+      }
       return t;
-    }), lt = () => {
-      c.value = {
+    }), $t = y(() => {
+      const t = {};
+      for (const [e, n] of Object.entries(D.value)) {
+        const a = n.filter((d) => d.allDay);
+        a.length && (t[e] = a);
+      }
+      return t;
+    }), Mt = y(
+      () => Array.from({ length: 7 }, (t, e) => H(e)).some((t) => ($t.value[t] ?? []).length > 0)
+    ), jt = y(() => {
+      const t = {};
+      for (const e of Object.keys(bt.value))
+        Object.assign(t, Rt(bt.value[e]));
+      return t;
+    }), gt = () => {
+      u.value = {
         start: "",
         end: "",
         date: "",
@@ -562,10 +829,10 @@ const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["
         title: "",
         description: ""
       }, s.additionalFields.forEach((t) => {
-        c.value[t.model] = "";
+        u.value[t.model] = "";
       });
-    }, rt = (t) => {
-      const e = t || c.value, n = {
+    }, wt = (t) => {
+      const e = t || u.value, n = {
         title: e.title,
         start: e.start,
         end: e.end,
@@ -574,387 +841,479 @@ const De = ["for"], Se = { key: 0 }, Le = ["id", "onUpdate:modelValue"], Ce = ["
         color: e.color,
         description: e.description
       };
-      s.additionalFields.forEach((o) => {
-        n[o.model] = e[o.model];
-      }), v("submit-event", n), lt();
-    }, et = (t) => mt(C.value, t), It = () => {
-      const t = W(b.value, y.value), e = new Date(Date.UTC(t.year, 0, 1)), o = (new Date(Date.UTC(t.year, t.month - 1, t.day)).getTime() - e.getTime()) / 864e5;
-      return Math.ceil((o + e.getUTCDay() + 1) / 7);
-    }, yt = (t) => {
-      b.value = new Date(b.value.getTime() + t * 7 * 864e5);
-    }, bt = (t) => {
-      const e = W(b.value, y.value);
-      let n = e.month + t, o = e.year;
+      s.additionalFields.forEach((a) => {
+        n[a.model] = e[a.model];
+      }), p("submit-event", n), gt();
+    }, H = (t) => vt(b.value, t), Ht = () => {
+      const t = et(l.value, k.value), e = new Date(Date.UTC(t.year, 0, 1)), a = (new Date(Date.UTC(t.year, t.month - 1, t.day)).getTime() - e.getTime()) / 864e5;
+      return Math.ceil((a + e.getUTCDay() + 1) / 7);
+    }, Lt = (t) => {
+      l.value = new Date(l.value.getTime() + t * 7 * 864e5);
+    }, Et = (t) => {
+      const e = et(l.value, k.value);
+      let n = e.month + t, a = e.year;
       for (; n > 12; )
-        n -= 12, o += 1;
+        n -= 12, a += 1;
       for (; n < 1; )
-        n += 12, o -= 1;
-      const l = Math.min(e.day, _e(o, n));
-      b.value = ot(o, n, l, 12, 0, y.value);
-    }, Yt = () => $.value === "month" ? bt(-1) : yt(-1), Ft = () => $.value === "month" ? bt(1) : yt(1), wt = (t) => {
-      const [e, n, o] = t.split("-").map(Number);
-      b.value = ot(e, n, o, 12, 0, y.value), $.value = "week";
-    }, At = (t) => {
-      const e = q(t);
+        n += 12, a -= 1;
+      const d = Math.min(e.day, Je(a, n));
+      l.value = it(a, n, d, 12, 0, k.value);
+    }, qt = () => Y.value === "month" ? Et(-1) : Lt(-1), Kt = () => Y.value === "month" ? Et(1) : Lt(1), Ut = (t) => {
+      const [e, n, a] = t.split("-").map(Number);
+      l.value = it(e, n, a, 12, 0, k.value), Y.value = "week";
+    }, Zt = (t) => {
+      const e = tt(t);
       if (!e) return { display: "none" };
-      const n = z(e.start, y.value), o = z(e.end, y.value), l = n * j / 60, S = Math.max(o - n, 15) * j / 60, _ = xt.value[t.id] ?? { col: 0, cols: 1 }, k = 100 / _.cols, B = k * _.col, ut = f.value?.active && f.value.event.id === t.id;
+      const n = q(e.start, k.value), a = q(e.end, k.value), d = n * J / 60, E = Math.max(a - n, 15) * J / 60, S = jt.value[t.id] ?? { col: 0, cols: 1 }, C = 100 / S.cols, x = C * S.col, at = g.value?.active && g.value.event.id === t.id;
       return {
         backgroundColor: t.color || "var(--calendar-primary-color)",
-        top: `${l}px`,
-        height: `${S}px`,
+        top: `${d}px`,
+        height: `${E}px`,
         position: "absolute",
-        left: `${B}%`,
-        width: `calc(${k}% - 4px)`,
+        left: `${x}%`,
+        width: `calc(${C}% - 4px)`,
         right: "auto",
         zIndex: 1,
-        opacity: ut ? 0.35 : 1,
+        opacity: at ? 0.35 : 1,
         borderRadius: "var(--event-border-radius)"
       };
-    }, Nt = (t) => {
-      const e = q(t);
-      return e ? pt(e.start, y.value) : "";
-    }, gt = (t, e, n) => {
+    }, Gt = (t) => {
+      const e = tt(t);
+      return e ? lt(e.start, k.value) : "";
+    }, Pt = (t) => {
+      const e = tt(t);
+      return e ? `${lt(e.start, k.value)} – ${lt(e.end, k.value)}` : "";
+    }, Jt = () => {
+      l.value = /* @__PURE__ */ new Date();
+    }, Qt = (t, e) => {
+      if (s.readonly || z || t.target.closest(".event, .allday-chip")) return;
+      const a = t.currentTarget.getBoundingClientRect(), d = (t.clientY - a.top) / J * 60, E = Math.round(d / 15) * 15, S = Math.max(0, Math.min(E, 1410)), C = Math.min(S + 60, 1440), x = (at) => `${String(Math.floor(at / 60)).padStart(2, "0")}:${String(at % 60).padStart(2, "0")}`;
+      u.value.date = e, u.value.start = x(S), u.value.end = x(C), W.value = {
+        id: 0,
+        title: "",
+        date: e,
+        start: x(S),
+        end: x(C),
+        color: "",
+        todos: [],
+        participants: []
+      }, w.value = !0, p("slot-click", { date: e, start: x(S), end: x(C) });
+    }, te = (t, e) => {
+      s.readonly || t.target.closest(".month-chip, .month-daynum, .month-more") || (u.value.date = e, W.value = {
+        id: 0,
+        title: "",
+        date: e,
+        start: "",
+        end: "",
+        color: "",
+        todos: [],
+        participants: []
+      }, w.value = !0, p("slot-click", { date: e }));
+    }, At = (t, e, n) => {
       if (t.button !== 0 && t.pointerType === "mouse") return;
-      const o = q(e);
-      if (!o) return;
-      const l = z(o.start, y.value), S = z(o.end, y.value), k = t.currentTarget.getBoundingClientRect(), B = t.clientY - k.top;
-      f.value = {
+      const a = tt(e);
+      if (!a) return;
+      const d = q(a.start, k.value), E = q(a.end, k.value), C = t.currentTarget.getBoundingClientRect(), x = t.clientY - C.top;
+      g.value = {
         event: e,
         pointerId: t.pointerId,
         startX: t.clientX,
         startY: t.clientY,
-        grabOffsetMinutes: $.value === "week" ? B * 60 / j : 0,
-        durationMin: S - l,
-        mode: $.value,
+        grabOffsetMinutes: Y.value === "week" ? x * 60 / J : 0,
+        durationMin: E - d,
+        mode: Y.value,
         active: !1,
         previewYmd: n,
-        previewStartMin: l,
+        previewStartMin: d,
         cursorX: t.clientX,
         cursorY: t.clientY
-      }, window.addEventListener("pointermove", kt), window.addEventListener("pointerup", _t), window.addEventListener("pointercancel", Tt);
-    }, kt = (t) => {
-      const e = f.value;
+      }, window.addEventListener("pointermove", Ft), window.addEventListener("pointerup", Yt), window.addEventListener("pointercancel", It);
+    }, Ft = (t) => {
+      const e = g.value;
       if (!e || t.pointerId !== e.pointerId) return;
       if (!e.active) {
-        const l = t.clientX - e.startX, S = t.clientY - e.startY;
-        if (Math.hypot(l, S) < ln) return;
+        const d = t.clientX - e.startX, E = t.clientY - e.startY;
+        if (Math.hypot(d, E) < qn) return;
         e.active = !0;
       }
       t.preventDefault(), e.cursorX = t.clientX, e.cursorY = t.clientY;
-      const o = document.elementFromPoint(t.clientX, t.clientY)?.closest("[data-ymd]");
-      if (o && (e.previewYmd = o.getAttribute("data-ymd"), e.mode === "week")) {
-        const l = o.getBoundingClientRect(), _ = (t.clientY - l.top) * 60 / j - e.grabOffsetMinutes, k = Math.max(0, Math.min(_, 1440 - e.durationMin));
-        e.previewStartMin = Math.round(k / 15) * 15;
+      const a = document.elementFromPoint(t.clientX, t.clientY)?.closest("[data-ymd]");
+      if (a && (e.previewYmd = a.getAttribute("data-ymd"), e.mode === "week")) {
+        const d = a.getBoundingClientRect(), S = (t.clientY - d.top) * 60 / J - e.grabOffsetMinutes, C = Math.max(0, Math.min(S, 1440 - e.durationMin));
+        e.previewStartMin = Math.round(C / 15) * 15;
       }
-    }, _t = (t) => {
-      const e = f.value;
-      !e || t.pointerId !== e.pointerId || (dt(), e.active && (Ot(e), x = !0, setTimeout(() => {
-        x = !1;
-      }, 50)), f.value = null);
-    }, Tt = () => {
-      dt(), f.value = null;
-    }, dt = () => {
-      window.removeEventListener("pointermove", kt), window.removeEventListener("pointerup", _t), window.removeEventListener("pointercancel", Tt);
-    }, Ot = (t) => {
-      const [e, n, o] = t.previewYmd.split("-").map(Number);
-      let l;
+    }, Yt = (t) => {
+      const e = g.value;
+      !e || t.pointerId !== e.pointerId || (kt(), e.active && (ee(e), z = !0, setTimeout(() => {
+        z = !1;
+      }, 50)), g.value = null);
+    }, It = () => {
+      kt(), g.value = null;
+    }, kt = () => {
+      window.removeEventListener("pointermove", Ft), window.removeEventListener("pointerup", Yt), window.removeEventListener("pointercancel", It);
+    }, ee = (t) => {
+      const [e, n, a] = t.previewYmd.split("-").map(Number);
+      let d;
       if (t.mode === "week")
-        l = t.previewStartMin;
+        d = t.previewStartMin;
       else {
-        const k = q(t.event);
-        if (!k) return;
-        l = z(k.start, y.value);
+        const C = tt(t.event);
+        if (!C) return;
+        d = q(C.start, k.value);
       }
-      const S = ot(
+      const E = it(
         e,
         n,
-        o,
-        Math.floor(l / 60),
-        l % 60,
-        y.value
-      ), _ = new Date(S.getTime() + t.durationMin * 6e4);
-      Vt(t.event, S, _);
-    }, Vt = (t, e, n) => {
-      v("update-event", {
+        a,
+        Math.floor(d / 60),
+        d % 60,
+        k.value
+      ), S = new Date(E.getTime() + t.durationMin * 6e4);
+      ne(t.event, E, S);
+    }, ne = (t, e, n) => {
+      p("update-event", {
         ...t,
         startsAt: e.toISOString(),
         endsAt: n.toISOString(),
-        date: ct(e, y.value),
-        start: pt(e, y.value),
-        end: pt(n, y.value)
+        date: pt(e, k.value),
+        start: lt(e, k.value),
+        end: lt(n, k.value)
       });
-    }, Dt = (t) => {
-      x || v("show-info", t);
-    }, Bt = () => {
-      v("close-popup");
-    }, zt = (t) => {
-      v("handle-delete", t);
-    }, Wt = (t) => {
-      v("update-event", t);
+    }, _t = (t) => {
+      z || p("show-info", t);
+    }, ae = () => {
+      w.value ? w.value = !1 : p("close-popup");
+    }, oe = (t) => {
+      w.value = !1, p("submit-event", t);
+    }, se = (t) => {
+      p("handle-delete", t);
+    }, le = (t) => {
+      p("update-event", t);
     };
-    return Ht(() => {
+    return Bt(() => {
       const t = {};
       for (const e of s.schedules) {
-        const n = q(e);
+        const n = tt(e);
         if (!n) continue;
-        const o = ct(n.start, y.value);
-        (t[o] ??= []).push(e);
+        const a = pt(n.start, k.value);
+        (t[a] ??= []).push(e);
       }
-      u.value = t;
-    }), Zt(() => {
-      s.additionalFields.forEach((e) => {
-        c.value[e.model] = "";
-      }), window.matchMedia?.("(prefers-color-scheme: dark)")?.matches && (m.value = !0);
-    }), jt(() => {
-      dt();
-    }), p({
-      newEvent: c,
-      addEvent: rt,
-      resetForm: lt
-    }), (t, e) => (r(), d("div", {
-      class: st(["calendar-theme", i.customClass, { dark: m.value, "is-dragging": tt.value }]),
-      style: Z(i.customStyles)
+      D.value = t;
+    }), Bt(() => {
+      let t, e;
+      if (Y.value === "week")
+        t = b.value, e = vt(b.value, 6);
+      else {
+        const n = $.value;
+        t = n[0]?.ymd ?? b.value, e = n[n.length - 1]?.ymd ?? b.value;
+      }
+      p("range-change", { start: t, end: e, view: Y.value });
+    }), ue(() => {
+      s.additionalFields.forEach((t) => {
+        u.value[t.model] = "";
+      }), typeof window < "u" && (window.matchMedia?.("(prefers-color-scheme: dark)")?.matches && (L.value = !0), j.value = q(/* @__PURE__ */ new Date(), k.value), X = setInterval(() => {
+        j.value = q(/* @__PURE__ */ new Date(), k.value);
+      }, 6e4));
+    }), ce(() => {
+      kt(), X && clearInterval(X);
+    }), _({
+      newEvent: u,
+      addEvent: wt,
+      resetForm: gt
+    }), (t, e) => (i(), r("div", {
+      class: ct(["calendar-theme", v.customClass, { dark: L.value, "is-dragging": A.value }]),
+      style: K(v.customStyles)
     }, [
-      Mt(t.$slots, "form", {
-        newEvent: c.value,
-        addEvent: rt,
-        additionalFields: g.value,
-        labels: A.value,
-        resetForm: lt
+      Tt(t.$slots, "form", {
+        newEvent: u.value,
+        addEvent: wt,
+        additionalFields: ut.value,
+        labels: P.value,
+        resetForm: gt
       }, () => [
-        a("form", {
+        o("form", {
           class: "form-container",
-          onSubmit: Gt(rt, ["prevent"])
+          onSubmit: rt(wt, ["prevent"])
         }, [
-          (r(!0), d(U, null, Y(g.value, (n) => (r(), d("div", {
+          o("div", tn, [
+            o("label", en, m(P.value.titleLabel) + ":", 1),
+            V(o("input", {
+              id: "title",
+              "onUpdate:modelValue": e[0] || (e[0] = (n) => u.value.title = n),
+              type: "text",
+              required: "",
+              class: "form-input",
+              placeholder: P.value.titleLabel
+            }, null, 8, nn), [
+              [O, u.value.title]
+            ])
+          ]),
+          (i(!0), r(I, null, N(ut.value, (n) => (i(), r("div", {
             key: n.id,
             class: "form-group"
           }, [
-            a("label", {
+            o("label", {
               for: n.id,
               class: "form-label"
-            }, w(n.label) + ":", 9, De),
-            n.type === "select" ? (r(), d("div", Se, [
-              V(a("select", {
+            }, m(n.label) + ":", 9, an),
+            n.type === "select" ? (i(), r("div", on, [
+              V(o("select", {
                 id: n.id,
-                "onUpdate:modelValue": (o) => c.value[n.model] = o,
+                "onUpdate:modelValue": (a) => u.value[n.model] = a,
                 required: "",
                 class: "form-select"
               }, [
-                (r(!0), d(U, null, Y(n.options, (o) => (r(), d("option", {
-                  key: o.id,
-                  value: o
-                }, w(o.name || `${o.first_name} ${o.last_name}`), 9, Ce))), 128))
-              ], 8, Le), [
-                [Kt, c.value[n.model]]
+                (i(!0), r(I, null, N(n.options, (a) => (i(), r("option", {
+                  key: a.id,
+                  value: a
+                }, m(a.name || `${a.first_name} ${a.last_name}`), 9, ln))), 128))
+              ], 8, sn), [
+                [pe, u.value[n.model]]
               ])
-            ])) : (r(), d("div", Me, [
-              V(a("input", {
+            ])) : (i(), r("div", rn, [
+              V(o("input", {
                 id: n.id,
-                "onUpdate:modelValue": (o) => c.value[n.model] = o,
+                "onUpdate:modelValue": (a) => u.value[n.model] = a,
                 type: n.type,
                 required: "",
                 class: "form-input"
-              }, null, 8, $e), [
-                [Jt, c.value[n.model]]
+              }, null, 8, dn), [
+                [ve, u.value[n.model]]
               ])
             ]))
           ]))), 128)),
-          a("div", Ee, [
-            a("label", Ue, w(A.value.startTimeLabel) + ":", 1),
-            V(a("input", {
+          o("div", un, [
+            o("label", cn, m(P.value.startTimeLabel) + ":", 1),
+            V(o("input", {
               id: "start",
-              "onUpdate:modelValue": e[0] || (e[0] = (n) => c.value.start = n),
+              "onUpdate:modelValue": e[1] || (e[1] = (n) => u.value.start = n),
               type: "time",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [G, c.value.start]
+              [O, u.value.start]
             ])
           ]),
-          a("div", Pe, [
-            a("label", xe, w(A.value.endTimeLabel) + ":", 1),
-            V(a("input", {
+          o("div", pn, [
+            o("label", vn, m(P.value.endTimeLabel) + ":", 1),
+            V(o("input", {
               id: "end",
-              "onUpdate:modelValue": e[1] || (e[1] = (n) => c.value.end = n),
+              "onUpdate:modelValue": e[2] || (e[2] = (n) => u.value.end = n),
               type: "time",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [G, c.value.end]
+              [O, u.value.end]
             ])
           ]),
-          a("div", Ie, [
-            a("label", Ye, w(A.value.dateLabel) + ":", 1),
-            V(a("input", {
+          o("div", mn, [
+            o("label", fn, m(P.value.dateLabel) + ":", 1),
+            V(o("input", {
               id: "date",
-              "onUpdate:modelValue": e[2] || (e[2] = (n) => c.value.date = n),
+              "onUpdate:modelValue": e[3] || (e[3] = (n) => u.value.date = n),
               type: "date",
               required: "",
               class: "form-input"
             }, null, 512), [
-              [G, c.value.date]
+              [O, u.value.date]
             ])
           ]),
-          a("button", Fe, w(A.value.submitButtonText), 1)
+          o("button", hn, m(P.value.submitButtonText), 1)
         ], 32)
       ]),
-      a("div", Ae, [
-        a("div", Ne, [
-          a("button", {
+      o("div", yn, [
+        o("div", bn, [
+          o("button", {
+            type: "button",
+            class: "today-btn",
+            onClick: Jt
+          }, m(P.value.todayButtonLabel), 1),
+          o("button", {
             type: "button",
             class: "arrow-button",
-            onClick: Yt
+            onClick: qt
           }, "<"),
-          a("span", Oe, w(N.value), 1),
-          a("button", {
+          o("span", gn, m(f.value), 1),
+          o("button", {
             type: "button",
             class: "arrow-button",
-            onClick: Ft
+            onClick: Kt
           }, ">"),
-          a("div", Ve, [
-            a("button", {
+          o("div", wn, [
+            o("button", {
               type: "button",
-              class: st(["view-btn", { active: $.value === "week" }]),
-              onClick: e[3] || (e[3] = (n) => $.value = "week")
-            }, w(A.value.weekViewLabel), 3),
-            a("button", {
+              class: ct(["view-btn", { active: Y.value === "week" }]),
+              onClick: e[4] || (e[4] = (n) => Y.value = "week")
+            }, m(P.value.weekViewLabel), 3),
+            o("button", {
               type: "button",
-              class: st(["view-btn", { active: $.value === "month" }]),
-              onClick: e[4] || (e[4] = (n) => $.value = "month")
-            }, w(A.value.monthViewLabel), 3)
+              class: ct(["view-btn", { active: Y.value === "month" }]),
+              onClick: e[5] || (e[5] = (n) => Y.value = "month")
+            }, m(P.value.monthViewLabel), 3)
           ])
         ]),
-        $.value === "week" ? (r(), d("div", Be, [
-          a("div", ze, [
-            e[7] || (e[7] = a("div", { class: "empty-slot" }, null, -1)),
-            (r(!0), d(U, null, Y(P.value, (n) => (r(), d("div", {
-              key: n,
-              class: "hour"
-            }, w(n), 1))), 128))
-          ]),
-          a("div", We, [
-            a("ul", Xe, [
-              (r(!0), d(U, null, Y(R.value, (n, o) => (r(), d("li", {
-                key: o,
-                class: "weekday"
-              }, [
-                a("span", null, w(n), 1),
-                a("span", null, w(et(o)), 1)
-              ]))), 128))
+        Y.value === "week" ? (i(), r("div", kn, [
+          o("div", _n, [
+            o("div", Tn, [
+              e[8] || (e[8] = o("div", { class: "empty-slot" }, null, -1)),
+              Mt.value ? (i(), r("div", Dn)) : M("", !0),
+              (i(!0), r(I, null, N(B.value, (n) => (i(), r("div", {
+                key: n,
+                class: "hour"
+              }, m(n), 1))), 128))
             ]),
-            a("div", Re, [
-              (r(), d(U, null, Y(7, (n, o) => a("div", {
-                key: o,
-                class: "day",
-                "data-ymd": et(o)
-              }, [
-                (r(!0), d(U, null, Y(P.value, (l) => (r(), d("div", {
-                  key: l,
-                  class: "hour"
-                }))), 128)),
-                f.value?.active && f.value.mode === "week" && f.value.previewYmd === et(o) ? (r(), d("div", {
-                  key: "preview-" + o,
-                  class: "event-preview",
-                  style: Z(Ut.value)
-                }, w(ht.value), 5)) : K("", !0),
-                (r(!0), d(U, null, Y(u.value[et(o)] || [], (l) => (r(), d("div", {
-                  key: "ev-" + l.id,
-                  class: "event",
-                  style: Z(At(l)),
-                  onPointerdown: (S) => gt(S, l, et(o))
+            o("div", Sn, [
+              o("ul", Cn, [
+                (i(!0), r(I, null, N(ft.value, (n, a) => (i(), r("li", {
+                  key: a,
+                  class: "weekday"
                 }, [
-                  a("span", {
-                    style: Z({ color: X.value, fontSize: J.value })
-                  }, w(l.title), 5),
-                  e[8] || (e[8] = a("br", null, null, -1)),
-                  a("button", {
+                  o("span", null, m(n), 1),
+                  o("span", null, m(H(a)), 1)
+                ]))), 128))
+              ]),
+              Mt.value ? (i(), r("div", $n, [
+                (i(), r(I, null, N(7, (n, a) => o("div", {
+                  key: a,
+                  class: "allday-day"
+                }, [
+                  (i(!0), r(I, null, N($t.value[H(a)] || [], (d) => (i(), r("button", {
+                    key: "ad-" + d.id,
                     type: "button",
-                    class: "info-button",
-                    onClick: (S) => Dt(l)
+                    class: "allday-chip",
+                    style: K({ backgroundColor: d.color || "var(--calendar-primary-color)" }),
+                    onClick: (E) => _t(d)
+                  }, m(d.title), 13, Mn))), 128))
+                ])), 64))
+              ])) : M("", !0),
+              o("div", Ln, [
+                (i(), r(I, null, N(7, (n, a) => o("div", {
+                  key: a,
+                  class: "day",
+                  "data-ymd": H(a),
+                  onClick: (d) => Qt(d, H(a))
+                }, [
+                  (i(!0), r(I, null, N(B.value, (d) => (i(), r("div", {
+                    key: d,
+                    class: "hour"
+                  }))), 128)),
+                  H(a) === Xt.value && j.value >= 0 ? (i(), r("div", {
+                    key: 0,
+                    class: "current-time-line",
+                    style: K({ top: `${j.value * J / 60}px` })
+                  }, [...e[9] || (e[9] = [
+                    o("div", { class: "current-time-dot" }, null, -1)
+                  ])], 4)) : M("", !0),
+                  g.value?.active && g.value.mode === "week" && g.value.previewYmd === H(a) ? (i(), r("div", {
+                    key: "preview-" + a,
+                    class: "event-preview",
+                    style: K(Z.value)
+                  }, m(St.value), 5)) : M("", !0),
+                  (i(!0), r(I, null, N(bt.value[H(a)] || [], (d) => (i(), r("div", {
+                    key: "ev-" + d.id,
+                    class: "event",
+                    style: K(Zt(d)),
+                    onPointerdown: (E) => At(E, d, H(a)),
+                    onClick: rt((E) => _t(d), ["stop"])
                   }, [
-                    a("img", {
-                      src: E(we),
-                      alt: "info",
-                      class: "small-logo"
-                    }, null, 8, je)
-                  ], 8, Ze)
-                ], 44, He))), 128))
-              ], 8, qe)), 64))
+                    Tt(t.$slots, "event", {
+                      event: d,
+                      timeRange: Pt(d)
+                    }, () => [
+                      o("div", Pn, [
+                        o("span", {
+                          class: "event-title",
+                          style: K({ color: mt.value, fontSize: dt.value })
+                        }, m(d.title), 5),
+                        o("span", An, m(Pt(d)), 1),
+                        o("div", Fn, [
+                          d.location ? (i(), r("span", Yn, m(d.location), 1)) : M("", !0),
+                          d.link ? (i(), r("span", In, "🔗")) : M("", !0),
+                          d.participants?.length ? (i(), r("span", Nn, m(d.participants.length) + " 👥", 1)) : M("", !0)
+                        ])
+                      ])
+                    ])
+                  ], 44, Un))), 128))
+                ], 8, En)), 64))
+              ])
             ])
           ])
-        ])) : (r(), d("div", Ge, [
-          a("div", Ke, [
-            (r(!0), d(U, null, Y(M.value, (n, o) => (r(), d("div", {
-              key: o,
+        ])) : (i(), r("div", Vn, [
+          o("div", xn, [
+            (i(!0), r(I, null, N(h.value, (n, a) => (i(), r("div", {
+              key: a,
               class: "month-weekday"
-            }, w(n), 1))), 128))
+            }, m(n), 1))), 128))
           ]),
-          a("div", Je, [
-            (r(!0), d(U, null, Y(L.value, (n) => (r(), d("div", {
+          o("div", On, [
+            (i(!0), r(I, null, N($.value, (n) => (i(), r("div", {
               key: n.ymd,
               "data-ymd": n.ymd,
-              class: st(["month-cell", {
+              class: ct(["month-cell", {
                 "is-outside": !n.inMonth,
                 "is-today": n.isToday,
-                "drop-target": f.value?.active && f.value.mode === "month" && f.value.previewYmd === n.ymd
-              }])
+                "drop-target": g.value?.active && g.value.mode === "month" && g.value.previewYmd === n.ymd
+              }]),
+              onClick: (a) => te(a, n.ymd)
             }, [
-              a("button", {
+              o("button", {
                 type: "button",
                 class: "month-daynum",
-                onClick: (o) => wt(n.ymd)
-              }, w(n.day), 9, tn),
-              a("div", en, [
-                (r(!0), d(U, null, Y(n.events.slice(0, vt), (o) => (r(), d("button", {
-                  key: "mev-" + o.id,
+                onClick: rt((a) => Ut(n.ymd), ["stop"])
+              }, m(n.day), 9, zn),
+              o("div", Wn, [
+                (i(!0), r(I, null, N(n.events.slice(0, Dt), (a) => (i(), r("button", {
+                  key: "mev-" + a.id,
                   type: "button",
                   class: "month-chip",
-                  style: Z({ backgroundColor: o.color || "var(--calendar-primary-color)" }),
-                  onPointerdown: (l) => gt(l, o, n.ymd),
-                  onClick: (l) => Dt(o)
+                  style: K({ backgroundColor: a.color || "var(--calendar-primary-color)" }),
+                  onPointerdown: (d) => At(d, a, n.ymd),
+                  onClick: rt((d) => _t(a), ["stop"])
                 }, [
-                  a("span", on, w(Nt(o)), 1),
-                  a("span", an, w(o.title), 1)
-                ], 44, nn))), 128)),
-                n.events.length > vt ? (r(), d("button", {
+                  o("span", Xn, m(Gt(a)), 1),
+                  o("span", jn, m(a.title), 1)
+                ], 44, Rn))), 128)),
+                n.events.length > Dt ? (i(), r("button", {
                   key: 0,
                   type: "button",
                   class: "month-more",
-                  onClick: (o) => wt(n.ymd)
-                }, " +" + w(n.events.length - vt), 9, sn)) : K("", !0)
+                  onClick: (a) => Ut(n.ymd)
+                }, " +" + m(n.events.length - Dt), 9, Hn)) : M("", !0)
               ])
-            ], 10, Qe))), 128))
+            ], 10, Bn))), 128))
           ])
         ]))
       ]),
-      f.value?.active ? (r(), d("div", {
+      g.value?.active ? (i(), r("div", {
         key: 0,
         class: "drag-time-tooltip",
-        style: Z({ left: f.value.cursorX + 14 + "px", top: f.value.cursorY + 14 + "px" })
-      }, w(ht.value), 5)) : K("", !0),
-      t.$slots["popup-calendar"] ? Mt(t.$slots, "popup-calendar", { key: 1 }) : (r(), Qt(be, {
+        style: K({ left: g.value.cursorX + 14 + "px", top: g.value.cursorY + 14 + "px" })
+      }, m(St.value), 5)) : M("", !0),
+      t.$slots["popup-calendar"] ? Tt(t.$slots, "popup-calendar", { key: 1 }) : (i(), me(Ke, {
         key: 2,
-        visible: it.value,
-        eventData: I.value,
-        popupFields: i.popupFields || [],
+        visible: yt.value,
+        eventData: ot.value,
+        createMode: ht.value,
+        popupFields: v.popupFields || [],
+        readonly: s.readonly,
         closeButtonText: "Close",
-        todosLabel: A.value.todosLabel || "To-Do",
-        participantsLabel: A.value.participantsLabel || "Teammates",
-        todos: I.value?.todos || [],
-        participants: I.value?.participants || [],
-        todoPlaceholder: at.value.todo || "New To-do...",
-        participantPlaceholder: at.value.participant || "Add Participant...",
-        "onUpdate:todos": e[5] || (e[5] = (n) => v("update:todos", n)),
-        "onUpdate:participants": e[6] || (e[6] = (n) => v("update:participants", n)),
-        onClosePopup: Bt,
-        onHandleDelete: zt,
-        onUpdateEvent: Wt
-      }, null, 8, ["visible", "eventData", "popupFields", "todosLabel", "participantsLabel", "todos", "participants", "todoPlaceholder", "participantPlaceholder"]))
+        todosLabel: P.value.todosLabel || "To-Do",
+        participantsLabel: P.value.participantsLabel || "Teammates",
+        todos: ot.value.todos || [],
+        participants: ot.value.participants || [],
+        todoPlaceholder: Q.value.todo || "New To-do...",
+        participantPlaceholder: Q.value.participant || "Add Participant...",
+        "onUpdate:todos": e[6] || (e[6] = (n) => p("update:todos", n)),
+        "onUpdate:participants": e[7] || (e[7] = (n) => p("update:participants", n)),
+        onClosePopup: ae,
+        onHandleDelete: se,
+        onUpdateEvent: le,
+        onSubmitEvent: oe
+      }, null, 8, ["visible", "eventData", "createMode", "popupFields", "readonly", "todosLabel", "participantsLabel", "todos", "participants", "todoPlaceholder", "participantPlaceholder"]))
     ], 6));
   }
 });
 export {
-  un as ScheduleForm,
-  un as default
+  Gn as ScheduleForm,
+  Gn as default
 };

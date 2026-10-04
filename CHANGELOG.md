@@ -1,5 +1,91 @@
 # Changelog
 
+## [1.0.0] - 2026-10-04
+
+This release closes all MVP gaps and marks the first stable public API.
+
+### Added
+
+#### Title field in default form
+- The built-in event form now includes a **title input** as the first field. Previously the title had to be wired in via `additionalFields`.
+
+#### "Today" button
+- A **Today** button appears in the navigation bar (left of the arrows). Clicking it resets the calendar to the current week or month. Label is customizable via `labelsAndSettings.todayButtonLabel`.
+
+#### Current time indicator
+- A **red horizontal line** (with a dot on the left) marks the current time in the week view. It updates every minute via `setInterval` and only appears in today's column.
+- Themeable via `--current-time-color`.
+
+#### Click-to-create
+- Clicking an **empty time slot** in the week view pre-fills `date`, `start`, and `end` in the form (snapped to 15-minute grid) and emits **`@slot-click`** `{ date, start, end }`.
+- Clicking an **empty month cell** pre-fills `date` and emits `@slot-click` `{ date }`.
+- Does nothing when `:readonly="true"`.
+
+#### All-day events
+- Events with `allDay: true` are shown in a compact **banner row** above the hour grid in the week view, not inside the time grid.
+- Month view was already correct (chips).
+- Demo includes a sample all-day event.
+
+#### `readonly` prop
+- New `readonly` prop (default `false`). When `true`: the form is hidden, drag & drop is disabled, and the popup hides the delete button, save button, and add-input rows for todos/participants.
+
+#### `event` scoped slot
+- The inner content of each week-view event block is now exposed via **`<slot name="event" :event :time-range>`**. Consumers can render fully custom markup while the component keeps positioning and drag logic.
+
+#### `@range-change` event
+- Emitted on mount and on every navigation. Payload: `{ start: string, end: string, view: 'week' | 'month' }` where `start`/`end` are `YYYY-MM-DD` strings of the first and last visible day. Use this for lazy-loading events from a server.
+
+#### Mobile horizontal scroll
+- The week view is now wrapped in a scroll container (`overflow-x: auto`). The grid has a `min-width: 560px` so it remains usable on narrow screens without collapsing.
+
+#### SSR compatibility
+- `window.matchMedia` and `setInterval` calls are now guarded with `typeof window !== 'undefined'`, making the component compatible with Nuxt and other SSR environments.
+
+### Changed
+- `theme.css` reduced to only body background overrides for light/dark; all duplicated/outdated legacy variables (e.g. `--info-button-color`, `--weekday-bg-color`, `--hour-cell-bg-color`) have been removed. All theming goes through `.calendar-theme` CSS variables in `ScheduleForm.vue`.
+- `overlapLayout` computed now operates only on timed (non-allDay) events, preventing allDay events from being included in the column-packing algorithm.
+- Month cell day-number and chip buttons now use `@click.stop` to prevent the new cell click-to-create handler from triggering simultaneously.
+
+### Fixed
+- `todayYmd` is now a reactive computed based on `timeZone`, so "today" highlighting is always correct in non-local zones.
+
+---
+
+## [0.9.0] - 2026-10-04
+
+### Added
+
+#### Rich event cards (week view)
+- Events in the week view now show a **time range** (`09:00 – 10:00`) below the title.
+- Compact **badges** appear for `room`, `link` (🔗 indicator), and participant count (👥 N) — all hidden via `overflow: hidden` in short slots.
+- A **left color stripe** (darker border) gives each event a cleaner visual structure.
+- Clicking anywhere on an event opens the popup (the separate info-button icon is removed).
+
+#### Modern event detail popup
+- **Colored header strip** matching `event.color` with the event title and time range at a glance.
+- **Meta section** with dedicated rows for:
+  - 📅 Date and time (resolved from `date`/`start`/`end` or UTC `startsAt`/`endsAt`)
+  - 📍 Room/location (inline-editable)
+  - 🔗 Online link — rendered as a **clickable anchor** that opens in a new tab
+  - 👤 Teacher/presenter (inline-editable)
+- **Description** / `info` displayed as a readable text block.
+- **Participants** redesigned as removable **pill chips**; add with Enter or the + button.
+- **Todos** redesigned as a bullet list with per-item hover-reveal delete and keyboard-friendly add input.
+- Delete button with a red hover state; close button moved to the header action group.
+- Clicking the overlay backdrop closes the popup.
+
+#### EventInfo fields documented
+- `room`, `link`, `teacher`, `description` are now officially documented fields with dedicated popup rendering (they were already part of the interface but had no special treatment).
+
+### Changed
+- `popupFields` defaults to `[]` (show all fields). Previously the demo defaulted to `['title', 'date', 'start', 'end']`, which hid room, link, and other fields. An empty array now means "show everything" as intended.
+- The `--popup-border-radius` default raised to `12px` for a more modern card look.
+
+### Removed
+- The floating SVG info-button inside week-view events is removed. The entire event area is now the click target for opening the popup.
+
+---
+
 ## [0.8.0] - 2026-08-16
 
 This release makes the calendar time-zone correct, adds a month view with proper

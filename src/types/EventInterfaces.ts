@@ -17,6 +17,8 @@ export interface LabelsAndSettings {
   participantsLabel?: string;
   weekViewLabel?: string
   monthViewLabel?: string
+  titleLabel?: string
+  todayButtonLabel?: string
 }
 
 export interface PopupProps {
@@ -53,6 +55,6 @@ export interface EventInfo {
   recurrence?: RecurrenceRule;
 
   description?: string;
-  teacher?: string;
-  room?: string;
+  organizer?: string;
+  location?: string;
 }
